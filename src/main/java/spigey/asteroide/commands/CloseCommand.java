@@ -2,8 +2,8 @@ package spigey.asteroide.commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.command.CommandSource;
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 
 public class CloseCommand extends Command {
     public CloseCommand() {
@@ -11,12 +11,12 @@ public class CloseCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.executes(context -> {
             try{
-                int syncId = mc.player.currentScreenHandler.syncId;
-                mc.player.closeScreen();
-                mc.player.networkHandler.sendPacket(new CloseHandledScreenC2SPacket(syncId));
+                int syncId = mc.player.containerMenu.containerId;
+                mc.player.clientSideCloseContainer();
+                mc.player.connection.send(new ServerboundContainerClosePacket(syncId));
             }catch(Exception L){/**/}
             return SINGLE_SUCCESS;
         });

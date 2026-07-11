@@ -12,12 +12,12 @@ import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.starscript.Script;
 import meteordevelopment.starscript.compiler.Compiler;
 import meteordevelopment.starscript.compiler.Parser;
-import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3d;
 import spigey.asteroide.AsteroideAddon;
 
 import static spigey.asteroide.util.msg;
 import meteordevelopment.starscript.utils.StarscriptError;
+import net.minecraft.world.phys.Vec3;
 
 public class AutoCommandModule extends Module {
     public AutoCommandModule() { super(AsteroideAddon.CATEGORY, "Auto-Command", "Automatically runs a command when you are in a specific area."); }
@@ -63,8 +63,8 @@ public class AutoCommandModule extends Module {
     @EventHandler
     private void onTick(TickEvent.Post event){
         if(tick > 0){ tick--; return; }
-        if(mc.player == null || mc.world == null) return;
-        Vec3d pos = mc.player.getPos();
+        if(mc.player == null || mc.level == null) return;
+        Vec3 pos = mc.player.position();
         // Spaghetti below
         if ((int)Math.floor(pos.x) < Math.min(start.get().x, end.get().x) || (int)Math.floor(pos.x) > Math.max(start.get().x, end.get().x) || (int)Math.floor(pos.y) < Math.min(start.get().y, end.get().y) || (int)Math.floor(pos.y) > Math.max(start.get().y, end.get().y) || (int)Math.floor(pos.z) < Math.min(start.get().z, end.get().z) || (int)Math.floor(pos.z) > Math.max(start.get().z, end.get().z)) return;
         String output = compile(command.get());

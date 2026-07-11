@@ -3,8 +3,9 @@ package spigey.asteroide.commands;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.command.CommandSource;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+
 import static spigey.asteroide.util.PlayerDir;
 
 public class PhaseCommand extends Command {
@@ -13,7 +14,7 @@ public class PhaseCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.then(argument("blocks", DoubleArgumentType.doubleArg()).executes(context -> {
 
             double blocks = context.getArgument("blocks", Double.class);
@@ -31,14 +32,14 @@ public class PhaseCommand extends Command {
                 packetsRequired = 1;
             }
 
-            if (mc.player.hasVehicle()) return SINGLE_SUCCESS;
+            if (mc.player.isPassenger()) return SINGLE_SUCCESS;
             // No vehicle version
             // For each 10 blocks, send a player move packet with no delta
             for (int packetNumber = 0; packetNumber < (packetsRequired - 1); packetNumber++) {
-                mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.OnGroundOnly(true, mc.player.horizontalCollision));
+                mc.player.connection.send(new ServerboundMovePlayerPacket.StatusOnly(true, mc.player.horizontalCollision));
             }
             // Now send the final player move packet
-            String owo = PlayerDir(mc.player.getYaw());
+            String owo = PlayerDir(mc.player.getYRot());
             double x = mc.player.getX();
             double y = mc.player.getY();
             double z = mc.player.getZ();
@@ -46,8 +47,8 @@ public class PhaseCommand extends Command {
             if(owo.equals("south")) z += blocks;
             if(owo.equals("west")) x -= blocks;
             if(owo.equals("north")) z -= blocks;
-            mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(x, y, z, true, mc.player.horizontalCollision));
-            mc.player.setPosition(x, y, z);
+            mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(x, y, z, true, mc.player.horizontalCollision));
+            mc.player.setPos(x, y, z);
 
             return SINGLE_SUCCESS;
         }));

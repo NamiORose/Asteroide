@@ -6,7 +6,7 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.util;
 import spigey.asteroide.utils.RandUtils;
@@ -113,7 +113,7 @@ public class AutoChatGame extends Module {
         }
 
         if(hidetr.get()){
-            if(shmsg.get()) event.setMessage(Text.of(String.format("§7[§9ChatGame§7]§f %s `%s`!", gameMode, game)));
+            if(shmsg.get()) event.setMessage(Component.nullToEmpty(String.format("§7[§9ChatGame§7]§f %s `%s`!", gameMode, game)));
             else event.cancel();
         }
 
@@ -179,7 +179,7 @@ public class AutoChatGame extends Module {
     }
 
     private void run(){
-        if(showsul.get()) ChatUtils.sendMsg(Text.of("§8[§9\uD83D\uDEC8§8] §7The solution is §e" + this.solution + "§7."));
+        if(showsul.get()) ChatUtils.sendMsg(Component.nullToEmpty("§8[§9\uD83D\uDEC8§8] §7The solution is §e" + this.solution + "§7."));
         else msg(this.solution);
         this.tick = -1;
     }

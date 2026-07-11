@@ -6,21 +6,14 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.entity.ProjectileEntitySimulator;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Blocks;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
@@ -80,22 +73,22 @@ public class AutoShieldModule extends Module {
         if(this.tick > 0) { this.tick--; return; }
         if(this.tick == -1) return;
         if(!this.blocking) return;
-        mc.options.useKey.setPressed(false);
+        mc.options.keyUse.setDown(false);
         this.blocking = false;
         this.tick = -1;
     }
 
     @EventHandler
     private void onRender(Render3DEvent event){
-        for(Entity entity : mc.world.getEntities()){
+        for(Entity entity : mc.level.entitiesForRendering()){
             if(!entities.get().contains(entity.getType())) continue;
             if(mc.player.distanceTo(entity) > checkRange.get()) continue;
             if(!isHoldingShield()) continue;
-            if(entity.getVelocity().lengthSquared() <= 0) continue;
+            if(entity.getDeltaMovement().lengthSqr() <= 0) continue;
             if(directionCheck.get() && !isLookingAtUs(entity)) continue;
-            mc.options.useKey.setPressed(true);
+            mc.options.keyUse.setDown(true);
             this.blocking = true;
-            if(pointToProjectile.get()) mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, entity.getPos());
+            if(pointToProjectile.get()) mc.player.lookAt(EntityAnchorArgument.Anchor.EYES, entity.position());
             this.tick = 5;
             return;
         }
@@ -103,7 +96,7 @@ public class AutoShieldModule extends Module {
 
     private boolean isLookingAtUs(Entity entity) {
         ProjectileEntitySimulator sim = new ProjectileEntitySimulator();
-        if(entity instanceof ProjectileEntity) sim.set(entity, true);
+        if(entity instanceof Projectile) sim.set(entity, true);
         else sim.set(entity, 0.05, 0.6, true);
         for(int i = 0; i < 100; i++){
             HitResult result = sim.tick();
@@ -113,5 +106,5 @@ public class AutoShieldModule extends Module {
         return false;
     }
 
-    private boolean isHoldingShield() { return items.get().contains(mc.player.getOffHandStack().getItem()) || items.get().contains(mc.player.getMainHandStack().getItem()); }
+    private boolean isHoldingShield() { return items.get().contains(mc.player.getOffhandItem().getItem()) || items.get().contains(mc.player.getMainHandItem().getItem()); }
 }

@@ -9,12 +9,12 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.*;
@@ -73,8 +73,8 @@ public class AntiAntiXrayModule extends Module {
 
     @EventHandler(priority = -2147483647)
     private void onPacketReceive(PacketEvent.Receive event) throws InterruptedException {
-        if(!(event.packet instanceof ChunkDataS2CPacket packet)) return;
-        this.chunkQueue.add(String.format("%d,%d", packet.getChunkX(), packet.getChunkZ())); // LMAOO
+        if(!(event.packet instanceof ClientboundLevelChunkWithLightPacket packet)) return;
+        this.chunkQueue.add(String.format("%d,%d", packet.getX(), packet.getZ())); // LMAOO
         this.tick = 3;
     }
 
@@ -87,10 +87,10 @@ public class AntiAntiXrayModule extends Module {
             totalVisited.clear();
             String chunk = this.chunkQueue.getFirst(); this.chunkQueue.removeFirst();
             int[] coords = { Integer.parseInt(chunk.split(",")[0]), Integer.parseInt(chunk.split(",")[1]) };
-            for(int y = mc.world.getBottomY(); y < mc.world.getTopYInclusive(); y++){ for(int x = 0; x < 16; x++){ for(int z = 0; z < 16; z++){
+            for(int y = mc.level.getMinY(); y < mc.level.getMaxY(); y++){ for(int x = 0; x < 16; x++){ for(int z = 0; z < 16; z++){
                 BlockPos pos = new BlockPos(coords[0] * 16 + x, y, coords[1] * 16 + z);
-                if(!mc.world.isPosLoaded(pos)) continue;
-                Block block = mc.world.getBlockState(pos).getBlock();
+                if(!mc.level.isLoaded(pos)) continue;
+                Block block = mc.level.getBlockState(pos).getBlock();
                 if(blocksToReplace.get().contains(block)) {
                     boolean changed = false;
                     if(heightCheck.get()){
@@ -107,7 +107,7 @@ public class AntiAntiXrayModule extends Module {
                             Map.entry(Blocks.ANCIENT_DEBRIS, List.of(120, 320))
                         );
                         List<Integer> map = mappings.getOrDefault(block, List.of(321, 321));
-                        if(pos.getY() < -60 || ((map.get(0) <= pos.getY() && map.get(1) >= pos.getY()) || (Registries.BLOCK.getId(block).toString().endsWith("_ore") && (pos.getY() > 8 && isDeepslate(block)) || (pos.getY() < -8 && !isDeepslate(block))))) { changed = true; mc.world.setBlockState(pos, replacement.get().getDefaultState()); }
+                        if(pos.getY() < -60 || ((map.get(0) <= pos.getY() && map.get(1) >= pos.getY()) || (BuiltInRegistries.BLOCK.getKey(block).toString().endsWith("_ore") && (pos.getY() > 8 && isDeepslate(block)) || (pos.getY() < -8 && !isDeepslate(block))))) { changed = true; mc.level.setBlockAndUpdate(pos, replacement.get().defaultBlockState()); }
                     }
                     if(!changed) checkBlocks(pos);
                 }
@@ -116,14 +116,14 @@ public class AntiAntiXrayModule extends Module {
     }
 
     private boolean isDeepslate(Block block){
-        String id = Registries.BLOCK.getId(block).toString();
+        String id = BuiltInRegistries.BLOCK.getKey(block).toString();
         return id.startsWith("minecraft:deepslate_") && id.endsWith("_ore"); // Eh
     }
 
     private void checkBlocks(BlockPos pos){
         if(totalVisited.contains(pos)) return;
         ArrayDeque<BlockPos> stack = new ArrayDeque<>();
-        BlockState state = mc.world.getBlockState(pos);
+        BlockState state = mc.level.getBlockState(pos);
         Set<BlockPos> visited = new HashSet<>();
         stack.add(pos);
 
@@ -131,18 +131,18 @@ public class AntiAntiXrayModule extends Module {
             BlockPos p = stack.pop();
             if(!visited.add(p)) continue;
             //if(!totalVisited.add(p)) continue;
-            if(!mc.world.getBlockState(p).getBlock().equals(state.getBlock())) { visited.remove(p); continue; }
+            if(!mc.level.getBlockState(p).getBlock().equals(state.getBlock())) { visited.remove(p); continue; }
             stack.add(p.north());
             stack.add(p.south());
             stack.add(p.east());
             stack.add(p.west());
-            stack.add(p.up());
-            stack.add(p.down());
+            stack.add(p.above());
+            stack.add(p.below());
         }
 
         boolean sameY = true;
         if(visited.size() <= minVeinSize.get()) return;
         for(BlockPos p : visited) if(p.getY() != pos.getY()){ sameY = false; break; }
-        if(sameY || visited.size() >= veinSizeThreshold.get()) for(BlockPos p : visited) mc.world.setBlockState(p, replacement.get().getDefaultState(), Block.NOTIFY_LISTENERS);
+        if(sameY || visited.size() >= veinSizeThreshold.get()) for(BlockPos p : visited) mc.level.setBlock(p, replacement.get().defaultBlockState(), Block.UPDATE_CLIENTS);
     }
 }

@@ -9,14 +9,14 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
 
 public class TrackerModule extends Module {
@@ -48,9 +48,9 @@ public class TrackerModule extends Module {
     @Override
     public void onActivate() {
         lastTickTime = System.currentTimeMillis();
-        if(AsteroideAddon.trackedPlayer != null && mc.getNetworkHandler() != null &&
-            mc.getNetworkHandler().getPlayerList().stream().noneMatch(player -> player.getProfile().getName().equals(AsteroideAddon.trackedPlayer))) {
-            ChatUtils.sendMsg(Text.of("§7Tracker enabled, use " + Config.get().prefix.get() + "track <player> to start tracking someone. §cThe tracked Player must be loaded!"));
+        if(AsteroideAddon.trackedPlayer != null && mc.getConnection() != null &&
+            mc.getConnection().getOnlinePlayers().stream().noneMatch(player -> player.getProfile().getName().equals(AsteroideAddon.trackedPlayer))) {
+            ChatUtils.sendMsg(Component.nullToEmpty("§7Tracker enabled, use " + Config.get().prefix.get() + "track <player> to start tracking someone. §cThe tracked Player must be loaded!"));
         }
     }
 
@@ -65,38 +65,38 @@ public class TrackerModule extends Module {
     @EventHandler
     public void onRender(Render3DEvent event) {
         if (AsteroideAddon.trackedPlayer == null || mc.player == null) return;
-        PlayerEntity entity = null;
-        for (AbstractClientPlayerEntity player : mc.world.getPlayers()) {
+        Player entity = null;
+        for (AbstractClientPlayer player : mc.level.players()) {
             if (player.getGameProfile().getName().equals(AsteroideAddon.trackedPlayer)) {
                 entity = player;
                 break;
             }
         }
         if (entity == null) {
-            mc.inGameHud.setOverlayMessage(Text.of("§cPlayer not found, pointing to last known location"), false);
-            mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(AsteroideAddon.lastPos[0], AsteroideAddon.lastPos[1], AsteroideAddon.lastPos[2]));
+            mc.gui.setOverlayMessage(Component.nullToEmpty("§cPlayer not found, pointing to last known location"), false);
+            mc.player.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(AsteroideAddon.lastPos[0], AsteroideAddon.lastPos[1], AsteroideAddon.lastPos[2]));
             return;
         }
 
         AsteroideAddon.lastPos = new double[]{entity.getX(), entity.getY(), entity.getZ()};
-        mc.inGameHud.setOverlayMessage(Text.of(String.format("§7Tracking %s at §cX: %.0f§7, §aY: %.0f§7, §9Z: %.0f", AsteroideAddon.trackedPlayer, entity.getX(), entity.getY(), entity.getZ())), false);
+        mc.gui.setOverlayMessage(Component.nullToEmpty(String.format("§7Tracking %s at §cX: %.0f§7, §aY: %.0f§7, §9Z: %.0f", AsteroideAddon.trackedPlayer, entity.getX(), entity.getY(), entity.getZ())), false);
         double[] pos = {entity.getX(), entity.getY(), entity.getZ()};
 
         for (int i = 0; i < 3; i++) {
-            last[i] = MathHelper.lerp(partialTicks * interpolation.get(), last[i], i == 1 ? entity.getEyeY() : pos[i]);
+            last[i] = Mth.lerp(partialTicks * interpolation.get(), last[i], i == 1 ? entity.getEyeY() : pos[i]);
         }
 
         if(render.get()) draw(event, entity);
-        mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(last[0], last[1], last[2]));
+        mc.player.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(last[0], last[1], last[2]));
     }
 
 
     private void draw(Render3DEvent event, Entity entity) {
-        double x = MathHelper.lerp(event.tickDelta, entity.lastRenderX, entity.getX()) - entity.getX();
-        double y = MathHelper.lerp(event.tickDelta, entity.lastRenderY, entity.getY()) - entity.getY();
-        double z = MathHelper.lerp(event.tickDelta, entity.lastRenderZ, entity.getZ()) - entity.getZ();
+        double x = Mth.lerp(event.tickDelta, entity.xOld, entity.getX()) - entity.getX();
+        double y = Mth.lerp(event.tickDelta, entity.yOld, entity.getY()) - entity.getY();
+        double z = Mth.lerp(event.tickDelta, entity.zOld, entity.getZ()) - entity.getZ();
 
-        Box box = entity.getBoundingBox();
+        AABB box = entity.getBoundingBox();
         event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(255, 255, 0, 128), new Color(255, 255, 0, 255), ShapeMode.Both, 0);
     }
 }

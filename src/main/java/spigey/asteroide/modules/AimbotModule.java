@@ -5,17 +5,16 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.SwordItem;
-
 import java.util.Set;
 
 public class AimbotModule extends Module {
@@ -80,20 +79,20 @@ public class AimbotModule extends Module {
         double[] geminiwtf = {entity.getX(), entity.getY(), entity.getZ()};
         assert mc.player != null;
         if(allowUp.get()) {
-            float yaw = MathHelper.wrapDegrees((float) (-Math.toDegrees(Math.atan2(geminiwtf[0] - mc.player.getX(), geminiwtf[2] - mc.player.getZ()))));
-            mc.player.setHeadYaw(yaw);
-            mc.player.setYaw(yaw);
+            float yaw = Mth.wrapDegrees((float) (-Math.toDegrees(Math.atan2(geminiwtf[0] - mc.player.getX(), geminiwtf[2] - mc.player.getZ()))));
+            mc.player.setYHeadRot(yaw);
+            mc.player.setYRot(yaw);
         } else {
-            mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(geminiwtf[0], entity.getY() + (entity.getHeight() * (percent.get() / 100.0)), geminiwtf[2]));
+            mc.player.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(geminiwtf[0], entity.getY() + (entity.getBbHeight() * (percent.get() / 100.0)), geminiwtf[2]));
         }
     }
 
     private Entity getEntity(){ // AI generated cuz suicidal thoughts
         Entity closestEntity = null;
         double closestDistance = Double.MAX_VALUE;
-        for (Entity e : mc.world.getEntities()) {
-            if (e != mc.player && e.isAlive() && mc.player.distanceTo(e) <= range.get() && entities.get().contains(e.getType()) && (!(e instanceof PlayerEntity) || (Friends.get().shouldAttack((PlayerEntity) e) || targetFriends.get()))) {
-                if(mc.player.isTeammate(e) && teamCheck.get()) continue;
+        for (Entity e : mc.level.entitiesForRendering()) {
+            if (e != mc.player && e.isAlive() && mc.player.distanceTo(e) <= range.get() && entities.get().contains(e.getType()) && (!(e instanceof Player) || (Friends.get().shouldAttack((Player) e) || targetFriends.get()))) {
+                if(mc.player.isAlliedTo(e) && teamCheck.get()) continue;
                 double distance = mc.player.distanceTo(e);
                 if (distance >= closestDistance) continue;
                 closestEntity = e;
@@ -118,9 +117,9 @@ public class AimbotModule extends Module {
 
     private boolean itemInHand() {
         return switch (weapon.get()) {
-            case Axe -> mc.player.getMainHandStack().getItem() instanceof AxeItem;
-            case Sword -> mc.player.getMainHandStack().getItem() instanceof SwordItem;
-            case Both -> mc.player.getMainHandStack().getItem() instanceof AxeItem || mc.player.getMainHandStack().isIn(ItemTags.SWORDS);
+            case Axe -> mc.player.getMainHandItem().getItem() instanceof AxeItem;
+            case Sword -> mc.player.getMainHandItem().getItem() instanceof SwordItem;
+            case Both -> mc.player.getMainHandItem().getItem() instanceof AxeItem || mc.player.getMainHandItem().is(ItemTags.SWORDS);
             case All -> true;
         };
     }

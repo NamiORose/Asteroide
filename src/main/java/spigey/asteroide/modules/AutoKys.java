@@ -1,15 +1,14 @@
 package spigey.asteroide.modules;
 
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
-import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
 import spigey.asteroide.AsteroideAddon;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.settings.StringListSetting;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.Entity;
-
+import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
+import net.minecraft.world.entity.Entity;
 import java.util.List;
 import java.util.Random;
 
@@ -27,8 +26,8 @@ public class AutoKys extends Module {
 
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event){
-        if(event.packet instanceof DeathMessageS2CPacket packet){
-            Entity entity = mc.world.getEntityById(packet.playerId());
+        if(event.packet instanceof ClientboundPlayerCombatKillPacket packet){
+            Entity entity = mc.level.getEntity(packet.playerId());
             if(entity != mc.player){return;}
             msg(messages.get().isEmpty() ? "kill yourself you fucking wimp" : messages.get().get(randomNum(0, messages.get().size() - 1)));
         }

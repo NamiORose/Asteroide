@@ -8,14 +8,14 @@ import meteordevelopment.meteorclient.settings.StringListSetting;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.gui.screen.ingame.CraftingScreen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Arrays;
@@ -41,17 +41,17 @@ public class InvCleanerModule extends Module {
 
     @EventHandler
     public void onTick(TickEvent.Post event){
-        if(mc.currentScreen == null) return;
-        if (!(mc.currentScreen instanceof HandledScreen<?>)) return;
-        DefaultedList<Slot> slots = ((HandledScreen<?>) mc.currentScreen).getScreenHandler().slots;
+        if(mc.screen == null) return;
+        if (!(mc.screen instanceof AbstractContainerScreen<?>)) return;
+        NonNullList<Slot> slots = ((AbstractContainerScreen<?>) mc.screen).getMenu().slots;
         if (slots == null || slots.isEmpty()) return;
         int[] exclude = new int[]{5, 6, 7, 8};
         for(Slot slot : slots){
-            if(!(slot.inventory instanceof PlayerInventory) && !(slot.id == 0 && ((mc.currentScreen instanceof InventoryScreen) || (mc.currentScreen instanceof CraftingScreen)))) continue;
-            if(Arrays.stream(exclude).anyMatch(slott -> slott == slot.id)) continue;
-            ItemStack uwu = slot.getStack();
-            if(!(items.get().contains(uwu.getItem()) || names.get().stream().anyMatch(name -> name.equalsIgnoreCase(uwu.getName().getString())))) continue;
-            InvUtils.drop().slotId(slot.id);
+            if(!(slot.container instanceof Inventory) && !(slot.index == 0 && ((mc.screen instanceof InventoryScreen) || (mc.screen instanceof CraftingScreen)))) continue;
+            if(Arrays.stream(exclude).anyMatch(slott -> slott == slot.index)) continue;
+            ItemStack uwu = slot.getItem();
+            if(!(items.get().contains(uwu.getItem()) || names.get().stream().anyMatch(name -> name.equalsIgnoreCase(uwu.getHoverName().getString())))) continue;
+            InvUtils.drop().slotId(slot.index);
         }
     }
 }

@@ -4,9 +4,9 @@ import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
@@ -32,13 +32,13 @@ public class VulcanDisablerModule extends Module {
 
     @Override
     public void onActivate(){
-        if(((List<ItemStack>) mc.player.getArmorItems()).get(2).getItem() != Items.ELYTRA){
+        if(((List<ItemStack>) mc.player.getArmorSlots()).get(2).getItem() != Items.ELYTRA){
             if(!muteTips.get()) info("You need to wear an elytra!");
             toggle();
             return;
         }
-        if(jump.get()) mc.player.jump();
-        mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_FALL_FLYING)); // Yes, it's that easy
+        if(jump.get()) mc.player.jumpFromGround();
+        mc.getConnection().send(new ServerboundPlayerCommandPacket(mc.player, ServerboundPlayerCommandPacket.Action.START_FALL_FLYING)); // Yes, it's that easy
         if(!muteTips.get()) info("Flight & Speed should now work. You can take off the elytra");
         toggle();
     }

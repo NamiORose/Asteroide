@@ -13,11 +13,11 @@ import meteordevelopment.starscript.Script;
 import meteordevelopment.starscript.compiler.Compiler;
 import meteordevelopment.starscript.compiler.Parser;
 import meteordevelopment.starscript.utils.StarscriptError;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.modules.RTCSettingsModule;
 import spigey.asteroide.utils.ws;
@@ -30,7 +30,7 @@ public class RTCCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.then(argument("message", StringArgumentType.greedyString()).suggests(this::getSuggestions).executes(context -> {
             ws.sendChat(compile(StringArgumentType.getString(context, "message")).split(" "));
             return SINGLE_SUCCESS;
@@ -50,7 +50,7 @@ public class RTCCommand extends Command {
             return SINGLE_SUCCESS;
         }));
         builder.then(literal("discord").executes(ctx ->{
-            mc.player.sendMessage(getButton(Text.literal("§8§l[§c§lAsteroide§8§l]§7 Join our Discord")), false);
+            mc.player.displayClientMessage(getButton(Component.literal("§8§l[§c§lAsteroide§8§l]§7 Join our Discord")), false);
             return SINGLE_SUCCESS;
         }));
         builder.then(literal("reconnect").executes(ctx -> {
@@ -61,8 +61,8 @@ public class RTCCommand extends Command {
         builder.then(literal("keep typing to send a message").executes(ctx -> SINGLE_SUCCESS));
     }
 
-    private static MutableText getButton(MutableText message){
-        MutableText Button = Text.literal("§8[ §9HERE §8]");
+    private static MutableComponent getButton(MutableComponent message){
+        MutableComponent Button = Component.literal("§8[ §9HERE §8]");
         Button.setStyle(Button.getStyle()
             .withClickEvent(new MeteorClickEvent(
                 ClickEvent.Action.OPEN_URL,
@@ -70,13 +70,13 @@ public class RTCCommand extends Command {
             ))
             .withHoverEvent(new HoverEvent(
                 HoverEvent.Action.SHOW_TEXT,
-                Text.literal("§7discord.gg/QFzE3UzdpQ")
+                Component.literal("§7discord.gg/QFzE3UzdpQ")
             ))
         );
         return message.append(" ").append(Button);
     }
 
-    private CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSource> ctx, SuggestionsBuilder builder) {
+    private CompletableFuture<Suggestions> getSuggestions(CommandContext<SharedSuggestionProvider> ctx, SuggestionsBuilder builder) {
         int rem = builder.getRemainingLowerCase().lastIndexOf('@');
         if (rem == -1) return builder.buildFuture();
         SuggestionsBuilder offset = builder.createOffset(builder.getStart() + rem + 1);

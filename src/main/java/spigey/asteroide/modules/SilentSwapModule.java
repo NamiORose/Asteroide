@@ -5,9 +5,9 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.utils.RandUtils;
 
@@ -55,32 +55,32 @@ public class SilentSwapModule extends Module {
     @EventHandler
     private void onClick(MouseButtonEvent event){
         if(this.tick > 0 || this.action != Action.NONE) return;
-        if(event.button != (trigger.get() == Trigger.Attacking ? 0 : 1) || mc.currentScreen != null || mc.targetedEntity == null || !isActive()) return;
-        if(!entities.get().contains(mc.targetedEntity.getType())) return;
+        if(event.button != (trigger.get() == Trigger.Attacking ? 0 : 1) || mc.screen != null || mc.crosshairPickEntity == null || !isActive()) return;
+        if(!entities.get().contains(mc.crosshairPickEntity.getType())) return;
         for(int i = 0; i < 9; i++){
-            if(!items.get().contains(mc.player.getInventory().getStack(i).getItem())) continue;
+            if(!items.get().contains(mc.player.getInventory().getItem(i).getItem())) continue;
             event.cancel();
             this.tick = calculateDelay();
-            this.lastSlot = mc.player.getInventory().selectedSlot;
+            this.lastSlot = mc.player.getInventory().selected;
             this.action = Action.ATTACK;
-            mc.player.getInventory().setSelectedSlot(i);
+            mc.player.getInventory().setSelectedHotbarSlot(i);
             break;
         }
     }
 
     @EventHandler
     private void onTick(TickEvent.Post event){
-        if(this.tick == -1 || !isActive() || mc.currentScreen != null) return;
+        if(this.tick == -1 || !isActive() || mc.screen != null) return;
         if(this.tick > 0) { this.tick--; return; }
         if(this.action == Action.ATTACK) {
-            if(mc.targetedEntity != null) {
-                if(trigger.get() == Trigger.Attacking) mc.interactionManager.attackEntity(mc.player, mc.targetedEntity);
-                else mc.interactionManager.interactEntity(mc.player, mc.targetedEntity, mc.player.getActiveHand());
-                mc.player.swingHand(mc.player.getActiveHand()); this.action = Action.SWAP_BACK; this.tick = calculateDelay(); }
-            else { mc.player.getInventory().setSelectedSlot(this.lastSlot); this.tick = -1; this.action = Action.NONE; }
+            if(mc.crosshairPickEntity != null) {
+                if(trigger.get() == Trigger.Attacking) mc.gameMode.attack(mc.player, mc.crosshairPickEntity);
+                else mc.gameMode.interact(mc.player, mc.crosshairPickEntity, mc.player.getUsedItemHand());
+                mc.player.swing(mc.player.getUsedItemHand()); this.action = Action.SWAP_BACK; this.tick = calculateDelay(); }
+            else { mc.player.getInventory().setSelectedHotbarSlot(this.lastSlot); this.tick = -1; this.action = Action.NONE; }
         }
         else if(this.action == Action.SWAP_BACK) {
-            mc.player.getInventory().setSelectedSlot(this.lastSlot);
+            mc.player.getInventory().setSelectedHotbarSlot(this.lastSlot);
             this.tick = -1;
             this.action = Action.NONE;
         }

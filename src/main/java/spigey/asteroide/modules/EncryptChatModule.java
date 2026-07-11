@@ -5,7 +5,7 @@ import meteordevelopment.meteorclient.events.game.SendMessageEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.util;
 
@@ -41,8 +41,8 @@ public class EncryptChatModule extends Module {
         int start = content.indexOf("STRT\"") + 5;
         String message = content; // ???
         if (start >= 0 && (content.indexOf("\"", start)) >= 0) {
-            try{event.setMessage(Text.literal(String.format("§e§l%s§r§e%s §r§c§l(Decrypted)", message.substring(0, start - 5), util.decrypt(split[1], encryptionKey.get()))));}
-            catch(Exception L){System.out.println(L); event.setMessage(Text.literal(String.format("§c§l%s§r§cDecryption Failed", message.substring(0, start - 5))));}
+            try{event.setMessage(Component.literal(String.format("§e§l%s§r§e%s §r§c§l(Decrypted)", message.substring(0, start - 5), util.decrypt(split[1], encryptionKey.get()))));}
+            catch(Exception L){System.out.println(L); event.setMessage(Component.literal(String.format("§c§l%s§r§cDecryption Failed", message.substring(0, start - 5))));}
         }}catch(Exception L){ /* Aw man */ }
     }
 }

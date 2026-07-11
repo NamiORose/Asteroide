@@ -10,15 +10,19 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.projectile.FireworkRocketEntity;
-import net.minecraft.item.Item;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.particle.ParticleType;
-import net.minecraft.text.Text;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
+import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.item.Item;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.*;
@@ -276,21 +280,21 @@ public class BetterAntiCrashModule extends Module {
 
     private Map<EntityType<?>, Integer> entityCounts = new HashMap<>();
 
-    public boolean shouldRender(net.minecraft.entity.Entity entity) {
+    public boolean shouldRender(net.minecraft.world.entity.Entity entity) {
         if(!isActive()) return true;
         if (entity == mc.player) return true;
         if (entity == null || entity.isRemoved()) return false;
-        if(entity instanceof ItemEntity) if(itemEntities.get().contains(((ItemEntity) entity).getStack().getItem())) return false;
+        if(entity instanceof ItemEntity) if(itemEntities.get().contains(((ItemEntity) entity).getItem().getItem())) return false;
         return !entities.get().contains(entity.getType());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST + 1)
     private void onReceivePacket(PacketEvent.Receive event) {
         if(!isActive()) return;
-        if(event.packet instanceof GameStateChangeS2CPacket packet){
-            if(packet.getReason().equals(GameStateChangeS2CPacket.DEMO_MESSAGE_SHOWN) && demoEvents.get()) event.cancel();
-            if(packet.getReason().equals(GameStateChangeS2CPacket.GAME_WON) && endCredits.get()) event.cancel();
-            if(packet.getReason().equals(GameStateChangeS2CPacket.ELDER_GUARDIAN_EFFECT) && elderGuardian.get()) event.cancel();
+        if(event.packet instanceof ClientboundGameEventPacket packet){
+            if(packet.getEvent().equals(ClientboundGameEventPacket.DEMO_EVENT) && demoEvents.get()) event.cancel();
+            if(packet.getEvent().equals(ClientboundGameEventPacket.WIN_GAME) && endCredits.get()) event.cancel();
+            if(packet.getEvent().equals(ClientboundGameEventPacket.GUARDIAN_ELDER_EFFECT) && elderGuardian.get()) event.cancel();
         }
         if(packets.get() && shouldCheck(event.packet)){
             if(packetThreshold.get() < event.packet.toString().length()){
@@ -298,16 +302,16 @@ public class BetterAntiCrashModule extends Module {
                 if(logBlockedPackets.get()) info(String.format("Blocked large %s packet with length %s!", PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()), getMessagePacketThing(event.packet.toString())));
             }
         }
-        if(event.packet instanceof EntityTrackerUpdateS2CPacket && entityLengthLimit.get()) { try{
+        if(event.packet instanceof ClientboundSetEntityDataPacket && entityLengthLimit.get()) { try{
             String name = "";
-            for(var entry : ((EntityTrackerUpdateS2CPacket) event.packet).trackedValues()) { if(entry.id() == 2) { name = ((Optional<Text>) entry.value()).isPresent() ? ((Optional<Text>) entry.value()).get().getString() : ""; break; }}
+            for(var entry : ((ClientboundSetEntityDataPacket) event.packet).packedItems()) { if(entry.id() == 2) { name = ((Optional<Component>) entry.value()).isPresent() ? ((Optional<Component>) entry.value()).get().getString() : ""; break; }}
             if(name.length() > ThresholdLength.get()) event.cancel();
         }catch(Exception L){/**/}}
-        if(event.packet instanceof ParticleS2CPacket) if(DeleteParticles.get() && ((ParticleS2CPacket) event.packet).getCount() >= Threshold.get()) event.cancel();
-        if(event.packet instanceof EntityStatusS2CPacket) if((((EntityStatusS2CPacket) event.packet).getEntity(mc.world) instanceof FireworkRocketEntity) && CancelFireworks.get()) event.cancel();
-        if(!(event.packet instanceof EntitySpawnS2CPacket packet)) return;
-        if(entities.get().contains(packet.getEntityType())) event.cancel();
-        if(this.entityCounts.getOrDefault(packet.getEntityType(), 0)+1 > EntityThreshold.get() && EntityLimit.get()) event.cancel();
+        if(event.packet instanceof ClientboundLevelParticlesPacket) if(DeleteParticles.get() && ((ClientboundLevelParticlesPacket) event.packet).getCount() >= Threshold.get()) event.cancel();
+        if(event.packet instanceof ClientboundEntityEventPacket) if((((ClientboundEntityEventPacket) event.packet).getEntity(mc.level) instanceof FireworkRocketEntity) && CancelFireworks.get()) event.cancel();
+        if(!(event.packet instanceof ClientboundAddEntityPacket packet)) return;
+        if(entities.get().contains(packet.getType())) event.cancel();
+        if(this.entityCounts.getOrDefault(packet.getType(), 0)+1 > EntityThreshold.get() && EntityLimit.get()) event.cancel();
     }
 
     private boolean shouldCheck(Packet<?> packet){
@@ -337,11 +341,11 @@ public class BetterAntiCrashModule extends Module {
             }
         }
         if(entityLengthLimit.get()){try{
-            Entity[] entities = StreamSupport.stream(mc.world.getEntities().spliterator(), false).toArray(Entity[]::new);
-            for(Entity entity : entities){ if(entity.getName().getString().length() > ThresholdLength.get() && entityLengthLimit.get()){ entity.setCustomName(Text.of(String.format("§c[Entity with length %s blocked]", getMessage(entity.getName().getString()))));} }
+            Entity[] entities = StreamSupport.stream(mc.level.entitiesForRendering().spliterator(), false).toArray(Entity[]::new);
+            for(Entity entity : entities){ if(entity.getName().getString().length() > ThresholdLength.get() && entityLengthLimit.get()){ entity.setCustomName(Component.nullToEmpty(String.format("§c[Entity with length %s blocked]", getMessage(entity.getName().getString()))));} }
         }catch(Exception L){/**/}}
         if(!EntityLimit.get()) return;
-        Entity[] entities = StreamSupport.stream(mc.world.getEntities().spliterator(), false).toArray(Entity[]::new);
+        Entity[] entities = StreamSupport.stream(mc.level.entitiesForRendering().spliterator(), false).toArray(Entity[]::new);
         if(entities.length < EntityThreshold.get()) { this.entityCounts = new HashMap<>(); return; }
         List<EntityType<?>> remove = new ArrayList<>();
         Map<EntityType<?>, Integer> thisCounts = new HashMap<>();
@@ -364,7 +368,7 @@ public class BetterAntiCrashModule extends Module {
         if(!chatLimit.get()) return;
         int length = event.getMessage().getString().length();
         if(chatLimit.get() && length <= ThresholdLength.get()) return;
-        event.setMessage(Text.of("§c[Message with length " + getMessage(event.getMessage().getString()) + " blocked]"));
+        event.setMessage(Component.nullToEmpty("§c[Message with length " + getMessage(event.getMessage().getString()) + " blocked]"));
     }
 
     @EventHandler
@@ -377,8 +381,8 @@ public class BetterAntiCrashModule extends Module {
     @Override
     public void onActivate() {
         try {
-            mc.world.getEntities().forEach(entity -> {
-                try{if (!shouldRender(entity)) entity.setRemoved(net.minecraft.entity.Entity.RemovalReason.DISCARDED);}
+            mc.level.entitiesForRendering().forEach(entity -> {
+                try{if (!shouldRender(entity)) entity.setRemoved(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);}
                 catch(Exception L){/**/}
             });
         }catch(Exception L){/**/}

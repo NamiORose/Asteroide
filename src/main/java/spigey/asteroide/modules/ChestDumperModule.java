@@ -6,15 +6,16 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.gui.screen.ingame.*;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
@@ -70,45 +71,45 @@ public class ChestDumperModule extends Module {
 
     private int tick;
     private int i = -1;
-    DefaultedList<Slot> slots;
+    NonNullList<Slot> slots;
     @EventHandler
     private void onTick(TickEvent.Post event) {
-        if (!(mc.currentScreen instanceof HandledScreen<?> screen) || mc.currentScreen instanceof InventoryScreen) return;
-        DefaultedList<Slot> slots = screen.getScreenHandler().slots;
+        if (!(mc.screen instanceof AbstractContainerScreen<?> screen) || mc.screen instanceof InventoryScreen) return;
+        NonNullList<Slot> slots = screen.getMenu().slots;
         if (slots == null || slots.isEmpty()) return;
         if (tick > 0) { tick--; return; }
 
         for(Slot slot : slots){
-            if(!(slot.inventory instanceof PlayerInventory)) continue;
-            if (shouldDump(slot.getStack())) {
-                ClickSlotC2SPacket packet = getPacket(slot.getStack(), slot);
+            if(!(slot.container instanceof Inventory)) continue;
+            if (shouldDump(slot.getItem())) {
+                ServerboundContainerClickPacket packet = getPacket(slot.getItem(), slot);
                 assert mc.player != null;
-                mc.player.networkHandler.sendPacket(packet);
+                mc.player.connection.send(packet);
                 tick = delay.get();
                 if(delay.get() > 0) return;
             }
         }
-        if(screen.getScreenHandler().slots.stream().noneMatch(slot -> slot.hasStack() && slot.inventory instanceof PlayerInventory) && close.get()) {
-            screen.close();
-            mc.player.networkHandler.sendPacket(new CloseHandledScreenC2SPacket(screen.getScreenHandler().syncId));
+        if(screen.getMenu().slots.stream().noneMatch(slot -> slot.hasItem() && slot.container instanceof Inventory) && close.get()) {
+            screen.onClose();
+            mc.player.connection.send(new ServerboundContainerClosePacket(screen.getMenu().containerId));
         }
     }
 
     private boolean shouldDump(ItemStack item){
         if(item.isEmpty()) return false;
         if(stealMode.get() == StealMode.All) return true;
-        for(int i = 0; i < name.get().size(); i++) if(item.getName().getString().equalsIgnoreCase(name.get().get(i))) return stealMode.get() == StealMode.Whitelist;
-        for(int i = 0; i < contain.get().size(); i++) if(item.getName().getString().toLowerCase().contains(contain.get().get(i).toLowerCase())) return stealMode.get() == StealMode.Whitelist;
-        for(int i = 0; i < items.get().size(); i++) if(item.getItem().getDefaultStack().getName().equals(items.get().get(i).getDefaultStack().getName())) return stealMode.get() == StealMode.Whitelist;
+        for(int i = 0; i < name.get().size(); i++) if(item.getHoverName().getString().equalsIgnoreCase(name.get().get(i))) return stealMode.get() == StealMode.Whitelist;
+        for(int i = 0; i < contain.get().size(); i++) if(item.getHoverName().getString().toLowerCase().contains(contain.get().get(i).toLowerCase())) return stealMode.get() == StealMode.Whitelist;
+        for(int i = 0; i < items.get().size(); i++) if(item.getItem().getDefaultInstance().getHoverName().equals(items.get().get(i).getDefaultInstance().getHoverName())) return stealMode.get() == StealMode.Whitelist;
         return (name.get().isEmpty() && contain.get().isEmpty() && items.get().isEmpty()) || stealMode.get() != StealMode.Whitelist;
     }
-    private ClickSlotC2SPacket getPacket(ItemStack uwu, Slot slot) {
-        return new ClickSlotC2SPacket(((HandledScreen<?>) mc.currentScreen).getScreenHandler().syncId, 1, slot.id, 0, SlotActionType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(slot.id, ItemStack.EMPTY));
+    private ServerboundContainerClickPacket getPacket(ItemStack uwu, Slot slot) {
+        return new ServerboundContainerClickPacket(((AbstractContainerScreen<?>) mc.screen).getMenu().containerId, 1, slot.index, 0, ClickType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(slot.index, ItemStack.EMPTY));
     }
 
     @EventHandler
     private void onPacketSend(PacketEvent.Sent event){
-        if(!(event.packet instanceof CloseHandledScreenC2SPacket)) return;
+        if(!(event.packet instanceof ServerboundContainerClosePacket)) return;
         tick = 0;
         i = -1;
     }

@@ -4,7 +4,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.utils.RandUtils;
 
@@ -83,7 +83,7 @@ public class AutoCrashModule extends Module {
     private void onTick(TickEvent.Post event){
         if(!isActive()) return;
         if(this.tick > 0) { this.tick--; return; }
-        for (PlayerListEntry player : mc.getNetworkHandler().getPlayerList()) {
+        for (PlayerInfo player : mc.getConnection().getOnlinePlayers()) {
             if (player.getProfile() == null || player.getProfile().getName() == null) continue;
 
             String name = player.getProfile().getName();
@@ -91,10 +91,10 @@ public class AutoCrashModule extends Module {
             if (PlayerModeSetting.get() == PlayerMode.Blacklist && players.get().contains(name)) continue;
 
             switch (ModeSetting.get()) {
-                case Kill -> mc.player.networkHandler.sendCommand(killMessage.get().replace("{name}", name).replace("/", ""));
-                case Kick -> mc.player.networkHandler.sendCommand(kickMessage.get().replace("{name}", name).replace("/", ""));
-                case Crash -> mc.player.networkHandler.sendCommand(crashMessage .get().replace("{name}", name).replace("/", ""));
-                case Ban -> mc.player.networkHandler.sendCommand(banMessage.get().replace("{name}", name).replace("/", ""));
+                case Kill -> mc.player.connection.sendUnsignedCommand(killMessage.get().replace("{name}", name).replace("/", ""));
+                case Kick -> mc.player.connection.sendUnsignedCommand(kickMessage.get().replace("{name}", name).replace("/", ""));
+                case Crash -> mc.player.connection.sendUnsignedCommand(crashMessage .get().replace("{name}", name).replace("/", ""));
+                case Ban -> mc.player.connection.sendUnsignedCommand(banMessage.get().replace("{name}", name).replace("/", ""));
             }
         }
         this.tick = getDelay();

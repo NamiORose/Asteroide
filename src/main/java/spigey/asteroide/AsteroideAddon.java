@@ -9,13 +9,13 @@ import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.option.ServerList;
-import net.minecraft.item.Items;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.ServerList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.world.item.Items;
 import spigey.asteroide.commands.*;
 import spigey.asteroide.hud.*;
 import spigey.asteroide.modules.*;
@@ -42,7 +42,7 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class AsteroideAddon extends MeteorAddon {
     public static final Logger LOG = LogUtils.getLogger();
-    public static final Category CATEGORY = new Category("Asteroide", Items.MAGMA_BLOCK.getDefaultStack());
+    public static final Category CATEGORY = new Category("Asteroide", Items.MAGMA_BLOCK.getDefaultInstance());
     public static final HudGroup HUD = new HudGroup("Asteroide");
     public static final Gson gson = new Gson();
     public static String spoofedIP = "?";
@@ -116,7 +116,7 @@ public class AsteroideAddon extends MeteorAddon {
         modules.add(new EncryptChatModule());
         modules.add(new DistributeModule());
         modules.add(new TrollModule());
-        if(mc.getSession().getUsername().equals("Spigey") || mc.getSession().getUsername().startsWith("Player")) modules.add(new DevModule()); // People have said this is malware. It's just debugging for development. It's literally open source.
+        if(mc.getUser().getName().equals("Spigey") || mc.getUser().getName().startsWith("Player")) modules.add(new DevModule()); // People have said this is malware. It's just debugging for development. It's literally open source.
         modules.add(new FastStaircaseModule());
         modules.add(new BlockHitboxesModule());
         modules.add(new ClientDeleteModule());
@@ -184,22 +184,22 @@ public class AsteroideAddon extends MeteorAddon {
             if (Files.exists(path) && Files.readString(path).equals("1")) return; // Should only create it on first startup
 
             ServerList list = new ServerList(mc);
-            list.loadFile();
-            list.add(new ServerInfo("You can delete this", "mc.asteroide.cc", ServerInfo.ServerType.OTHER), false);
-            for (int i = list.size() - 1; i > 0; i--) list.swapEntries(i, i - 1);
-            list.saveFile();
+            list.load();
+            list.add(new ServerData("You can delete this", "mc.asteroide.cc", ServerData.Type.OTHER), false);
+            for (int i = list.size() - 1; i > 0; i--) list.swap(i, i - 1);
+            list.save();
             Files.writeString(path, "1");
         }catch(Exception e){ /**/ }
     }
 
-    private Text getPrefix(){ // https://github.com/MeteorClientPlus/MeteorPlus/blob/1.21.8/src/main/java/nekiplay/meteorplus/features/modules/misc/ChatPrefix.java
-        MutableText value = Text.literal("Asteroide");
-        MutableText prefix = Text.literal("");
-        value.setStyle(value.getStyle().withColor(TextColor.fromFormatting(Formatting.RED)));
-        prefix.setStyle(prefix.getStyle().withFormatting(Formatting.DARK_GRAY))
-            .append(Text.literal("["))
+    private Component getPrefix(){ // https://github.com/MeteorClientPlus/MeteorPlus/blob/1.21.8/src/main/java/nekiplay/meteorplus/features/modules/misc/ChatPrefix.java
+        MutableComponent value = Component.literal("Asteroide");
+        MutableComponent prefix = Component.literal("");
+        value.setStyle(value.getStyle().withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
+        prefix.setStyle(prefix.getStyle().applyFormat(ChatFormatting.DARK_GRAY))
+            .append(Component.literal("["))
             .append(value)
-            .append(Text.literal("] "));
+            .append(Component.literal("] "));
         return prefix;
     } // Text.of("§7[§cAsteroide§7] ")
 

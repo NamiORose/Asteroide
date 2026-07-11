@@ -21,9 +21,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.network.message.ChatVisibility;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.ChatVisiblity;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import spigey.asteroide.AsteroideAddon;
@@ -48,15 +48,15 @@ public class ws extends WebSocketClient {
 
     @Override
     public void send(String text) {
-        if(text.contains(mc.getSession().getAccessToken())){
-            if(mc.getSession().getAccessToken().length() < 5){
+        if(text.contains(mc.getUser().getAccessToken())){
+            if(mc.getUser().getAccessToken().length() < 5){
                 super.send(text); // Cracked account, access token mostly empty string or "FabricMC"
                 return;
             }
             // NOTIFIES THE USER IF THE ACCESS TOKEN IS SENT TO THE SERVER.
             try {
                 AsteroideAddon.LOG.info(text);
-                mc.player.sendMessage(Text.of("Your access token has been leaked!! You should change your password"), false);
+                mc.player.displayClientMessage(Component.nullToEmpty("Your access token has been leaked!! You should change your password"), false);
                 AsteroideAddon.LOG.info("Access token has been leaked! Not good, change your password!!");
             }
             catch(Exception e){ AsteroideAddon.LOG.info("Access token has been leaked! Not good, change your password!"); }
@@ -69,13 +69,13 @@ public class ws extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         // https://github.com/SpiritGameStudios/Snapper/blob/dfb796714931042bdc6d5893771ddcc7d2a40484/src/client/java/dev/spiritstudios/snapper/util/SnapperUtil.java#L51
-        boolean isCracked = mc.getSession().getAccessToken().length() < 300;
+        boolean isCracked = mc.getUser().getAccessToken().length() < 300;
 
         AsteroideAddon.LOG.info("Connected to RTC Server!");
         RTCSettingsModule rtc = Modules.get().get(RTCSettingsModule.class);
         this.send(gson.toJson(Map.of(
             "event", "init",
-            "username", String.format("%s%s", isCracked ? "." : "", mc.getSession().getUsername()),
+            "username", String.format("%s%s", isCracked ? "." : "", mc.getUser().getName()),
             "online", rtc.isActive() && rtc.broadcastOnline.get()
         )));
         ping = new Timer();
@@ -104,7 +104,7 @@ public class ws extends WebSocketClient {
                     final RTCSettingsModule rtc = Modules.get().get(RTCSettingsModule.class);
                     String msg = message.get("message").getAsString();
                     if(rtc.censor.get() && rtc.isActive()) msg = msg.replaceAll("(?i)igg", "***").replaceAll("(?i)fag", "***");
-                    if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.sendMessage(HexConverter.toText(msg), false);
+                    if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.displayClientMessage(HexConverter.toText(msg), false);
                     break;
                 case "mmesp":
                     Modules.get().get(MurderMysteryESP.class).mmData(message.get("innocent").getAsJsonArray(), message.get("detective").getAsJsonArray(), message.get("murder").getAsJsonArray());
@@ -121,7 +121,7 @@ public class ws extends WebSocketClient {
         reconnecting = true;
         if(ping != null) { ping.cancel(); ping = null; }
         try{
-            if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.sendMessage(Text.of("§8§l[§c§lAsteroide§8§l]§r Disconnected from RTC Server. ("+s+")"), false);
+            if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.displayClientMessage(Component.nullToEmpty("§8§l[§c§lAsteroide§8§l]§r Disconnected from RTC Server. ("+s+")"), false);
         }catch(Exception L){/**/}
         reconnectThread = new Thread(() -> {
             while(true){
@@ -194,13 +194,13 @@ public class ws extends WebSocketClient {
         RTCSettingsModule rtc = Modules.get().get(RTCSettingsModule.class);
         return !(
             (rtc.hideMessages.get() && rtc.isActive()) ||
-                (mc.options.hudHidden && !(mc.currentScreen instanceof ChatScreen)) ||
-                mc.world == null ||
-                mc.options.getChatVisibility().getValue() == ChatVisibility.HIDDEN ||
-                mc.getWindow().isMinimized() ||
+                (mc.options.hideGui && !(mc.screen instanceof ChatScreen)) ||
+                mc.level == null ||
+                mc.options.chatVisibility().get() == ChatVisiblity.HIDDEN ||
+                mc.getWindow().isIconified() ||
                 mc.getWindow().shouldClose() ||
-                !mc.isFinishedLoading() ||
-                !mc.isWindowFocused() ||
+                !mc.isGameLoadFinished() ||
+                !mc.isWindowActive() ||
                 !mc.isRunning()
         );
     }

@@ -8,8 +8,7 @@ import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.SharedSuggestionProvider;
 import spigey.asteroide.utils.RandUtils;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public class DelayCommand extends Command {
     private boolean isSubscribed = false;
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.then(argument("delay", IntegerArgumentType.integer(0)).then(argument("message", StringArgumentType.greedyString()).executes(context -> {
             int tick = IntegerArgumentType.getInteger(context, "delay");
             Map<Integer, String> inner = new HashMap<>();

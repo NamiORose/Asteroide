@@ -7,9 +7,9 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.player.NoInteract;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.block.Block;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.BlockHitResult;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
@@ -127,15 +127,15 @@ public class BetterNoInteractModule extends Module {
 
     private boolean shouldAttackBlock(BlockPos pos) {
         if (checkCoords(pos)) return true;
-        if(mc.world == null) return false;
-        Block block = mc.world.getBlockState(pos).getBlock();
+        if(mc.level == null) return false;
+        Block block = mc.level.getBlockState(pos).getBlock();
         return blockMine.get().contains(block) ^ (blockMineMode.get() == NoInteract.ListMode.BlackList);
     }
 
     private boolean shouldInteractBlock(BlockHitResult result) {
         if (checkCoords(result.getBlockPos())) return true;
-        if(mc.world == null) return false;
-        Block block = mc.world.getBlockState(result.getBlockPos()).getBlock();
+        if(mc.level == null) return false;
+        Block block = mc.level.getBlockState(result.getBlockPos()).getBlock();
         return blockInteract.get().contains(block) ^ (blockInteractMode.get() == NoInteract.ListMode.BlackList);
     }
 }

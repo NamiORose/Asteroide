@@ -13,18 +13,18 @@ import meteordevelopment.meteorclient.utils.render.RenderUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BowItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.OpenWrittenBookS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.AABB;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.*;
@@ -332,13 +332,13 @@ public class MurderMysteryESP extends Module {
         String[] dec = AsteroideAddon.gson.fromJson(detectives, String[].class);
         String[] murd = AsteroideAddon.gson.fromJson(murderers, String[].class);
         for(String detec : dec){
-            if(Objects.equals(detec, mc.getSession().getUsername())) continue;
+            if(Objects.equals(detec, mc.getUser().getName())) continue;
             if(!found.contains(detec)) detectives.add(detec);
             info(String.format("Your friend §b%s§7 is §bDetective§7!", detec));
         }
 
         for(String mur : murd){
-            if(Objects.equals(mur, mc.getSession().getUsername())) continue;
+            if(Objects.equals(mur, mc.getUser().getName())) continue;
             if(!found.contains(mur)) murderers.add(mur);
             info(String.format("Your friend §c%s§7 is §cMurderer§7!", mur));
         }
@@ -354,8 +354,8 @@ public class MurderMysteryESP extends Module {
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event) {
         if(!isActive()) return;
-        if(event.packet instanceof OpenWrittenBookS2CPacket && blockDescription.get()) event.cancel();
-        if(!(event.packet instanceof TitleS2CPacket packet)) return;
+        if(event.packet instanceof ClientboundOpenBookPacket && blockDescription.get()) event.cancel();
+        if(!(event.packet instanceof ClientboundSetTitleTextPacket packet)) return;
 
         String text = packet.text().getString();
 
@@ -377,17 +377,17 @@ public class MurderMysteryESP extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Post event){
-        if(resetItems.get().contains(mc.player.getInventory().getStack(8).getItem())) { murderers.clear(); detectives.clear(); found.clear(); } // lmao
-        for(Entity entity : mc.world.getEntities()){
+        if(resetItems.get().contains(mc.player.getInventory().getItem(8).getItem())) { murderers.clear(); detectives.clear(); found.clear(); } // lmao
+        for(Entity entity : mc.level.entitiesForRendering()){
             if(entity == mc.player && ignoreSelf.get()) continue;
-            if(!(entity instanceof PlayerEntity)) continue;
-            String player = ((PlayerEntity) entity).getGameProfile().getName();
-            Item main = ((PlayerEntity) entity).getMainHandStack().getItem();
+            if(!(entity instanceof Player)) continue;
+            String player = ((Player) entity).getGameProfile().getName();
+            Item main = ((Player) entity).getMainHandItem().getItem();
             boolean murd = murdItems.get().contains(main); boolean dec = decItems.get().contains(main);
             if(murd) { murderers.add(player); detectives.remove(player); }
             if(dec) detectives.add(player);
             if(murd || dec){
-                if(murd && murdLog.get() && !found.contains(player) && !resetItems.get().contains(mc.player.getInventory().getStack(8).getItem())){
+                if(murd && murdLog.get() && !found.contains(player) && !resetItems.get().contains(mc.player.getInventory().getItem(8).getItem())){
                     // %murd%, %detective%, %pos%, %murd_pos%, %detective_pos%
                     if(announceMurd.get()) ChatUtils.sendPlayerMsg(murdAnnouncement.get()
                         .replaceAll("%murd%", player)
@@ -398,7 +398,7 @@ public class MurderMysteryESP extends Module {
                     );
                     info(String.format("§c%s§7 is holding §c%s§7!", player, main.getName().getString()));
                 }
-                if(dec && decLog.get() && !found.contains(player) && !resetItems.get().contains(mc.player.getInventory().getStack(8).getItem())){
+                if(dec && decLog.get() && !found.contains(player) && !resetItems.get().contains(mc.player.getInventory().getItem(8).getItem())){
                     if(announceDec.get()) ChatUtils.sendPlayerMsg(decAnnouncement.get()
                         .replaceAll("%murd%", murderers.stream().findFirst().orElse("None"))
                         .replaceAll("%detective%", player)
@@ -415,12 +415,12 @@ public class MurderMysteryESP extends Module {
 
     @EventHandler
     private void onRender3D(Render3DEvent event){
-        for(Entity entity : mc.world.getEntities()){
-            if(entity instanceof ArmorStandEntity && ((ArmorStandEntity)entity).getEquippedStack(EquipmentSlot.MAINHAND).getItem() instanceof BowItem && (bowEsp.get() || bowTracers.get())) bowEsp(event, entity);
-            if(entity instanceof ItemEntity && ((ItemEntity) entity).getStack().getItem() == Items.GOLD_INGOT && itemEsp.get()) itemEsp(event, entity);
+        for(Entity entity : mc.level.entitiesForRendering()){
+            if(entity instanceof ArmorStand && ((ArmorStand)entity).getItemBySlot(EquipmentSlot.MAINHAND).getItem() instanceof BowItem && (bowEsp.get() || bowTracers.get())) bowEsp(event, entity);
+            if(entity instanceof ItemEntity && ((ItemEntity) entity).getItem().getItem() == Items.GOLD_INGOT && itemEsp.get()) itemEsp(event, entity);
             if(entity == mc.player && ignoreSelf.get()) continue;
-            if(!(entity instanceof PlayerEntity)) continue;
-            String player = ((PlayerEntity) entity).getGameProfile().getName();
+            if(!(entity instanceof Player)) continue;
+            String player = ((Player) entity).getGameProfile().getName();
             tracers(event, entity);
             drawBoundingBox(event, entity);
         }
@@ -442,7 +442,7 @@ public class MurderMysteryESP extends Module {
     }
 
     private void drawBoundingBox(Render3DEvent event, Entity entity) {
-        Role role = getRole(((PlayerEntity) entity).getGameProfile().getName());
+        Role role = getRole(((Player) entity).getGameProfile().getName());
         if(role == Role.Murderer && !murdESP.get()) return;
         if(role == Role.Detective && !decESP.get()) return;
         if(role == Role.Innocent && !innESP.get()) return;
@@ -450,16 +450,16 @@ public class MurderMysteryESP extends Module {
         Color color = getColor(role);
         if(color == null) return;
 
-        double x = MathHelper.lerp(event.tickDelta, entity.lastRenderX, entity.getX()) - entity.getX();
-        double y = MathHelper.lerp(event.tickDelta, entity.lastRenderY, entity.getY()) - entity.getY();
-        double z = MathHelper.lerp(event.tickDelta, entity.lastRenderZ, entity.getZ()) - entity.getZ();
+        double x = Mth.lerp(event.tickDelta, entity.xOld, entity.getX()) - entity.getX();
+        double y = Mth.lerp(event.tickDelta, entity.yOld, entity.getY()) - entity.getY();
+        double z = Mth.lerp(event.tickDelta, entity.zOld, entity.getZ()) - entity.getZ();
 
-        Box box = entity.getBoundingBox();
+        AABB box = entity.getBoundingBox();
         event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, color, null, ShapeMode.Sides, 0);
     }
 
     private void tracers(Render3DEvent event, Entity entity){
-        Role role = getRole(((PlayerEntity) entity).getGameProfile().getName());
+        Role role = getRole(((Player) entity).getGameProfile().getName());
         if(role == Role.Murderer && !murdTracers.get()) return;
         if(role == Role.Detective && !decTracers.get()) return;
         if(role == Role.Innocent && !innTracers.get()) return;
@@ -467,9 +467,9 @@ public class MurderMysteryESP extends Module {
         Color color = getColor(role);
         if(color == null) return;
 
-        double x = entity.prevX + (entity.getX() - entity.prevX) * event.tickDelta;
-        double y = entity.prevY + (entity.getY() - entity.prevY) * event.tickDelta;
-        double z = entity.prevZ + (entity.getZ() - entity.prevZ) * event.tickDelta;
+        double x = entity.xo + (entity.getX() - entity.xo) * event.tickDelta;
+        double y = entity.yo + (entity.getY() - entity.yo) * event.tickDelta;
+        double z = entity.zo + (entity.getZ() - entity.zo) * event.tickDelta;
 
         event.renderer.line(RenderUtils.center.x, RenderUtils.center.y, RenderUtils.center.z, x, y, z, new Color(color).a(255));
     }

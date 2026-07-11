@@ -11,15 +11,18 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.client.gui.screens.inventory.ContainerScreen;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Objects;
@@ -57,10 +60,10 @@ public class MinehutAutoJoinRandomModule extends Module {
         .filter(aClass -> PacketUtils.getS2CPackets().contains(aClass))
         .visible(cancelPackets::get)
             .defaultValue(Set.of(
-                ChunkDataS2CPacket.class,
-                ChunkLoadDistanceS2CPacket.class,
-                EntityS2CPacket.class,
-                EntitySpawnS2CPacket.class
+                ClientboundLevelChunkWithLightPacket.class,
+                ClientboundSetChunkCacheRadiusPacket.class,
+                ClientboundMoveEntityPacket.class,
+                ClientboundAddEntityPacket.class
             ))
         .build()
     );
@@ -70,7 +73,7 @@ public class MinehutAutoJoinRandomModule extends Module {
         .filter(aClass -> PacketUtils.getC2SPackets().contains(aClass))
         .visible(cancelPackets::get)
         .defaultValue(Set.of(
-            PlayerMoveC2SPacket.class
+            ServerboundMovePlayerPacket.class
         ))
         .build()
     );
@@ -84,30 +87,30 @@ public class MinehutAutoJoinRandomModule extends Module {
     @EventHandler
     private void onTick(TickEvent.Post event){
         if(tick > 0) {tick--; return;}
-        if(mc.isInSingleplayer()) return;
-        if(!(Objects.requireNonNull(mc.getCurrentServerEntry()).address).toLowerCase().contains("minehut.")) return;
-        if(!Objects.equals(mc.player.getInventory().getMainHandStack().getName().getString(), "Find a Server (Right-Click)")) return;
-        if(!(mc.currentScreen instanceof GenericContainerScreen)) Utils.rightClick();
-        if(!(mc.currentScreen instanceof GenericContainerScreen)) return;
-        DefaultedList<Slot> slots = ((GenericContainerScreen) mc.currentScreen).getScreenHandler().slots;
-        ClickSlotC2SPacket packet = new ClickSlotC2SPacket(1, 69, category.get().get(), 1, SlotActionType.PICKUP, slots.get(0).getStack(), Int2ObjectMaps.singleton(0, ItemStack.EMPTY));
-        mc.getNetworkHandler().sendPacket(packet);
+        if(mc.isLocalServer()) return;
+        if(!(Objects.requireNonNull(mc.getCurrentServer()).ip).toLowerCase().contains("minehut.")) return;
+        if(!Objects.equals(mc.player.getInventory().getSelected().getHoverName().getString(), "Find a Server (Right-Click)")) return;
+        if(!(mc.screen instanceof ContainerScreen)) Utils.rightClick();
+        if(!(mc.screen instanceof ContainerScreen)) return;
+        NonNullList<Slot> slots = ((ContainerScreen) mc.screen).getMenu().slots;
+        ServerboundContainerClickPacket packet = new ServerboundContainerClickPacket(1, 69, category.get().get(), 1, ClickType.PICKUP, slots.get(0).getItem(), Int2ObjectMaps.singleton(0, ItemStack.EMPTY));
+        mc.getConnection().send(packet);
         tick = delay.get();
     }
 
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event){
-        if(!isActive() || !cancelPackets.get() || mc.isInSingleplayer()) return;
-        if(!(Objects.requireNonNull(mc.getCurrentServerEntry()).address).toLowerCase().contains("minehut.")) return;
-        if(!Objects.equals(mc.player.getInventory().getMainHandStack().getName().getString(), "Find a Server (Right-Click)")) return;
+        if(!isActive() || !cancelPackets.get() || mc.isLocalServer()) return;
+        if(!(Objects.requireNonNull(mc.getCurrentServer()).ip).toLowerCase().contains("minehut.")) return;
+        if(!Objects.equals(mc.player.getInventory().getSelected().getHoverName().getString(), "Find a Server (Right-Click)")) return;
         if(s2cPackets.get().contains(event.packet.getClass())) event.cancel();
     }
 
     @EventHandler
     private void onPacketSend(PacketEvent.Send event){
-        if(!isActive() || !cancelPackets.get() || mc.isInSingleplayer()) return;
-        if(!(Objects.requireNonNull(mc.getCurrentServerEntry()).address).toLowerCase().contains("minehut.")) return;
-        if(!Objects.equals(mc.player.getInventory().getMainHandStack().getName().getString(), "Find a Server (Right-Click)")) return;
+        if(!isActive() || !cancelPackets.get() || mc.isLocalServer()) return;
+        if(!(Objects.requireNonNull(mc.getCurrentServer()).ip).toLowerCase().contains("minehut.")) return;
+        if(!Objects.equals(mc.player.getInventory().getSelected().getHoverName().getString(), "Find a Server (Right-Click)")) return;
         if(c2sPackets.get().contains(event.packet.getClass())) event.cancel();
     }
 

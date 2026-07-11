@@ -36,7 +36,7 @@ public class AutoFuckModule extends Module {
 
     @Override
     public void onDeactivate() {
-        mc.options.sneakKey.setPressed(false);
+        mc.options.keyShift.setDown(false);
     }
 
     private int tick = -1;
@@ -49,18 +49,18 @@ public class AutoFuckModule extends Module {
             sneaking = true;
             tick = sneakTime.get();
             assert mc.player != null;
-            mc.options.sneakKey.setPressed(true);
+            mc.options.keyShift.setDown(true);
         }
         if(sneaking){
             sneaking = false;
             tick = delay.get();
             assert mc.player != null;
-            mc.options.sneakKey.setPressed(false);
+            mc.options.keyShift.setDown(false);
         } else{
             sneaking = true;
             tick = sneakTime.get();
             assert mc.player != null;
-            mc.options.sneakKey.setPressed(true);
+            mc.options.keyShift.setDown(true);
         }
     }
 }

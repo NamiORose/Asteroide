@@ -4,13 +4,11 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
 
 public class SafeElytra extends Module {
@@ -64,20 +62,20 @@ public class SafeElytra extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
-        if(!mc.player.isInPose(EntityPose.GLIDING) || !isActive()) return;
-        if(verticalVelocity.get() && mc.player.getVelocity().y < -maxVelocity.get()) mc.player.setVelocity(mc.player.getVelocity().x, -maxVelocity.get(), mc.player.getVelocity().z);
+        if(!mc.player.hasPose(Pose.FALL_FLYING) || !isActive()) return;
+        if(verticalVelocity.get() && mc.player.getDeltaMovement().y < -maxVelocity.get()) mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, -maxVelocity.get(), mc.player.getDeltaMovement().z);
         if(!walls.get()) return;
-        if(mc.player.raycast(wallRange.get(), 0f, false).getType() != HitResult.Type.BLOCK) return;
-        Vec3d vel = mc.player.getVelocity();
-        mc.player.setVelocity(
-            MathHelper.clamp(vel.x, -maxWallVelocity.get(), maxWallVelocity.get()),
-            MathHelper.clamp(vel.y, -maxWallVelocity.get(), maxWallVelocity.get()),
-            MathHelper.clamp(vel.z, -maxWallVelocity.get(), maxWallVelocity.get())
+        if(mc.player.pick(wallRange.get(), 0f, false).getType() != HitResult.Type.BLOCK) return;
+        Vec3 vel = mc.player.getDeltaMovement();
+        mc.player.setDeltaMovement(
+            Mth.clamp(vel.x, -maxWallVelocity.get(), maxWallVelocity.get()),
+            Mth.clamp(vel.y, -maxWallVelocity.get(), maxWallVelocity.get()),
+            Mth.clamp(vel.z, -maxWallVelocity.get(), maxWallVelocity.get())
         );
         if(!elytraDisable.get()) return;
         mc.player.fallDistance = 0;
         mc.player.setOnGround(true);
-        mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.OnGroundOnly(true, true));
+        mc.player.connection.send(new ServerboundMovePlayerPacket.StatusOnly(true, true));
     }
 }
 

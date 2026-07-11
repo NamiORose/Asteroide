@@ -15,8 +15,8 @@ public class Username extends HudElement {
     }
     @Override
     public void render(HudRenderer renderer) {
-        String text = String.format("Username: %s", mc.getSession().getUsername());
+        String text = String.format("Username: %s", mc.getUser().getName());
         setSize(renderer.textWidth(text, true), renderer.textHeight(true));
-        renderer.text(mc.getSession().getUsername(), renderer.text("Username: ", x, y, Hud.get().textColors.get().get(0), true), y, Hud.get().textColors.get().get(1), true);
+        renderer.text(mc.getUser().getName(), renderer.text("Username: ", x, y, Hud.get().textColors.get().get(0), true), y, Hud.get().textColors.get().get(1), true);
     }
 }

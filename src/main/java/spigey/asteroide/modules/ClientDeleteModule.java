@@ -10,8 +10,8 @@ import meteordevelopment.meteorclient.utils.misc.Keybind;
 import meteordevelopment.meteorclient.utils.misc.input.KeyAction;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
 import org.lwjgl.glfw.GLFW;
 import spigey.asteroide.AsteroideAddon;
 
@@ -85,9 +85,9 @@ public class ClientDeleteModule extends Module {
     @EventHandler
     private void onKey(MouseButtonEvent event){
         int bind = customInput.get() ? Integer.parseInt(keybind.get()) : selectionBind.get().getValue();
-        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.currentScreen != null || event.button != bind) return;
-        if (!(mc.crosshairTarget instanceof BlockHitResult result)) return;
-        mc.world.setBlockState(result.getBlockPos(), Blocks.AIR.getDefaultState());
+        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.button != bind) return;
+        if (!(mc.hitResult instanceof BlockHitResult result)) return;
+        mc.level.setBlockAndUpdate(result.getBlockPos(), Blocks.AIR.defaultBlockState());
         if(!keepActive.get()) toggle();
         event.cancel();
     }
@@ -95,16 +95,16 @@ public class ClientDeleteModule extends Module {
     @EventHandler
     private void onKey(KeyEvent event){
         int bind = customInput.get() ? Integer.parseInt(keybind.get()) : selectionBind.get().getValue();
-        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.currentScreen != null || event.key != bind) return;
-        if (!(mc.crosshairTarget instanceof BlockHitResult result)) return;
-        mc.world.setBlockState(result.getBlockPos(), Blocks.AIR.getDefaultState());
+        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.key != bind) return;
+        if (!(mc.hitResult instanceof BlockHitResult result)) return;
+        mc.level.setBlockAndUpdate(result.getBlockPos(), Blocks.AIR.defaultBlockState());
         if(!keepActive.get()) toggle();
         event.cancel();
     }
 
     @EventHandler
     private void onRender3D(Render3DEvent event) {
-        if (!(mc.crosshairTarget instanceof BlockHitResult result)) return;
+        if (!(mc.hitResult instanceof BlockHitResult result)) return;
         event.renderer.box(result.getBlockPos(), sideColor.get(), lineColor.get(), shapeMode.get(), 0);
     }
 }

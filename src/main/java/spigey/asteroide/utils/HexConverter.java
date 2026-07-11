@@ -1,31 +1,30 @@
 package spigey.asteroide.utils;
 
 import meteordevelopment.meteorclient.utils.render.color.Color;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HexConverter {
-    public static MutableText toText(String text) {
-        if (text == null || text.isEmpty()) return Text.empty();
+    public static MutableComponent toText(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
 
-        MutableText out = Text.empty();
+        MutableComponent out = Component.empty();
         Matcher matcher = Pattern.compile("§(#[0-9a-fA-F]{6}|[0-9a-fk-orA-FK-OR])").matcher(text);
 
         int last = 0;
         Integer customColor = null;
-        List<Formatting> formats = new ArrayList<>();
+        List<ChatFormatting> formats = new ArrayList<>();
 
         while (matcher.find()) {
             if (matcher.start() > last) {
-                MutableText seg = Text.literal(text.substring(last, matcher.start()));
+                MutableComponent seg = Component.literal(text.substring(last, matcher.start()));
                 if (customColor != null) seg = seg.withColor(customColor);
-                if (!formats.isEmpty()) seg = seg.formatted(formats.toArray(new Formatting[0]));
+                if (!formats.isEmpty()) seg = seg.withStyle(formats.toArray(new ChatFormatting[0]));
                 out.append(seg);
             }
 
@@ -33,12 +32,12 @@ public class HexConverter {
 
             if (code.startsWith("#")) {
                 customColor = fromHex(code);
-                formats.removeIf(Formatting::isColor);
+                formats.removeIf(ChatFormatting::isColor);
             } else {
-                Formatting f = Formatting.byCode(Character.toLowerCase(code.charAt(0)));
-                if (f == Formatting.RESET) { formats.clear(); customColor = null;
+                ChatFormatting f = ChatFormatting.getByCode(Character.toLowerCase(code.charAt(0)));
+                if (f == ChatFormatting.RESET) { formats.clear(); customColor = null;
                 } else if (f != null) {
-                    if (f.isColor()) { formats.removeIf(Formatting::isColor); formats.add(f); customColor = null;}
+                    if (f.isColor()) { formats.removeIf(ChatFormatting::isColor); formats.add(f); customColor = null;}
                     else formats.add(f);
                 }
             }
@@ -47,9 +46,9 @@ public class HexConverter {
         }
 
         if (last < text.length()) {
-            MutableText seg = Text.literal(text.substring(last));
+            MutableComponent seg = Component.literal(text.substring(last));
             if (customColor != null) seg = seg.withColor(customColor);
-            if (!formats.isEmpty()) seg = seg.formatted(formats.toArray(new Formatting[0]));
+            if (!formats.isEmpty()) seg = seg.withStyle(formats.toArray(new ChatFormatting[0]));
             out.append(seg);
         }
 

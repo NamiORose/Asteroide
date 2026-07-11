@@ -9,9 +9,9 @@ import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.common.CommonPingS2CPacket;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Set;
@@ -39,14 +39,14 @@ public class PacketLoggerModule extends Module {
     @EventHandler(priority = EventPriority.HIGHEST + 1)
     private void onReceivePacket(PacketEvent.Receive event) {
         if (s2cPackets.get().contains(event.packet.getClass())) {
-            if(event.packet instanceof CommonPingS2CPacket) info(String.valueOf(((CommonPingS2CPacket) event.packet).getParameter()));
-            else ChatUtils.sendMsg(Text.of("§7" + PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()) + " was received!"));
+            if(event.packet instanceof ClientboundPingPacket) info(String.valueOf(((ClientboundPingPacket) event.packet).getId()));
+            else ChatUtils.sendMsg(Component.nullToEmpty("§7" + PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()) + " was received!"));
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST + 1)
     private void onSendPacket(PacketEvent.Send event) {
-        if (c2sPackets.get().contains(event.packet.getClass())) ChatUtils.sendMsg(Text.of("§7" + PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()) + " was sent!"));
+        if (c2sPackets.get().contains(event.packet.getClass())) ChatUtils.sendMsg(Component.nullToEmpty("§7" + PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()) + " was sent!"));
     }
 }
 

@@ -1,6 +1,6 @@
 package spigey.asteroide.mixin;
 
-import net.minecraft.world.border.WorldBorder;
+import net.minecraft.world.level.border.WorldBorder;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(WorldBorder.class)

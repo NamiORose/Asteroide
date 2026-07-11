@@ -4,12 +4,10 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Optional;
@@ -45,14 +43,14 @@ public class AntiAimModule extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
-        for(Entity entity : mc.world.getEntities()){
+        for(Entity entity : mc.level.entitiesForRendering()){
             if(entity == mc.player) continue;
-            if(!entity.isInRange(mc.player, checkRange.get())) continue;
+            if(!entity.closerThan(mc.player, checkRange.get())) continue;
             if(!entities.get().contains(entity.getType())) continue;
             for(int i = 2; i < attackRange.get(); i++){
-                HitResult result = entity.raycast(i, 0, false);
+                HitResult result = entity.pick(i, 0, false);
                 if(result == null) continue;
-                if(!result.getPos().isInRange(mc.player.getPos().add(0, 1, 0), 2.5)) continue;
+                if(!result.getLocation().closerThan(mc.player.position().add(0, 1, 0), 2.5)) continue;
                 /*Optional<BlockPos> newPos = BlockPos.findClosest(mc.player.getBlockPos(), 3, 3, blockPos ->
                     !mc.world.getBlockState(blockPos).isSolid() &&
                     !mc.world.getBlockState(blockPos.add(0,1,0)).isSolid() &&
@@ -70,7 +68,7 @@ public class AntiAimModule extends Module {
 
                 //if(!newPos.isPresent()) continue;
                 //mc.player.setPosition(newPos.get().getX()+0.5, newPos.get().getY(), newPos.get().getZ()+0.5);
-                mc.player.setPosition(Vec3d.of(entity.getBlockPos().offset(entity.getHorizontalFacing().getOpposite())));
+                mc.player.setPos(Vec3.atLowerCornerOf(entity.blockPosition().relative(entity.getDirection().getOpposite())));
                 //mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, entity.getPos().add(0,1.65,0));
             }
         }

@@ -8,10 +8,9 @@ import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.command.CommandSource;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class DupeCommand extends Command {
     private boolean setDelay = true;
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.executes(context -> {
             execute();
             this.setDelay = false;
@@ -45,9 +44,9 @@ public class DupeCommand extends Command {
     private void execute(String command, int delay){
         MeteorClient.EVENT_BUS.subscribe(this);
         List<ItemStack> oldInventory = new ArrayList<>();
-        for (int i = 0; i < mc.player.getInventory().size(); i++) { oldInventory.add(mc.player.getInventory().getStack(i).copyWithCount(1)); }
+        for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) { oldInventory.add(mc.player.getInventory().getItem(i).copyWithCount(1)); }
         this.inventory = oldInventory;
-        mc.getNetworkHandler().sendChatCommand(command.startsWith("/") ? command.substring(1) : command);
+        mc.getConnection().sendCommand(command.startsWith("/") ? command.substring(1) : command);
         this.tick = delay;
     }
 
@@ -59,19 +58,19 @@ public class DupeCommand extends Command {
     private void onTick(TickEvent.Post event) {
         if(mc.player == null || this.tick == -1) { MeteorClient.EVENT_BUS.unsubscribe(this); return; }
         if(!this.setDelay){
-            PlayerInventory newInventory = mc.player.getInventory();
-            for(int i = 0; i < newInventory.size(); i++){
+            Inventory newInventory = mc.player.getInventory();
+            for(int i = 0; i < newInventory.getContainerSize(); i++){
                 ItemStack item = this.inventory.get(i);
-                if(!ItemStack.areEqual(item, newInventory.getStack(i).copyWithCount(1))){ InvUtils.drop().slot(i); }
+                if(!ItemStack.matches(item, newInventory.getItem(i).copyWithCount(1))){ InvUtils.drop().slot(i); }
             }
             this.tick--;
             return;
         }
         if(this.tick > 0){ this.tick--; return; }
-        PlayerInventory newInventory = mc.player.getInventory();
-        for(int i = 0; i < newInventory.size(); i++){
+        Inventory newInventory = mc.player.getInventory();
+        for(int i = 0; i < newInventory.getContainerSize(); i++){
             ItemStack item = this.inventory.get(i);
-            if(!ItemStack.areEqual(item, newInventory.getStack(i))){ InvUtils.drop().slot(i); }
+            if(!ItemStack.matches(item, newInventory.getItem(i))){ InvUtils.drop().slot(i); }
         }
         this.tick = -1;
         MeteorClient.EVENT_BUS.unsubscribe(this);

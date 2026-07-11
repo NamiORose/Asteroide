@@ -5,7 +5,7 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
@@ -45,25 +45,25 @@ public class DistributeModule extends Module {
 
     private int tick = 0;
     private int idx = 0;
-    private List<PlayerListEntry> players = new ArrayList<>();
+    private List<PlayerInfo> players = new ArrayList<>();
 
     @Override
     public void onActivate() {
-        if(mc.getCurrentServerEntry() == null) return;
+        if(mc.getCurrentServer() == null) return;
         this.tick = 0;
         this.idx = -1;
-        this.players.addAll(mc.getNetworkHandler().getPlayerList());
+        this.players.addAll(mc.getConnection().getOnlinePlayers());
     }
 
     @EventHandler
     private void onTick(TickEvent.Post event){
-        if(mc.getCurrentServerEntry() == null) return;
+        if(mc.getCurrentServer() == null) return;
         if(tick > 0){tick--; return;}
         if(tick < 0) return;
         if(this.players.isEmpty()) return;
         idx++;
         if(idx >= this.players.size()) idx = 0;
-        PlayerListEntry player = this.players.get(idx);
+        PlayerInfo player = this.players.get(idx);
         for (String s : ranks.get()) if (displayName(player).toLowerCase().contains(s.toLowerCase())) return;
         for (String s : users.get()) if (player.getProfile().getName().toLowerCase().contains(s.toLowerCase()) || player.getProfile().getName().contains("§")) return;
         ChatUtils.sendPlayerMsg(String.format("/%s", command.get().get(new Random().nextInt(command.get().size())).replace("{name}", player.getProfile().getName()).replace("/", "")));
@@ -71,5 +71,5 @@ public class DistributeModule extends Module {
         tick = delay.get();
     }
 
-    private String displayName(PlayerListEntry player){ return player.getDisplayName() == null ? player.getProfile().getName() : player.getDisplayName().getString(); }
+    private String displayName(PlayerInfo player){ return player.getTabListDisplayName() == null ? player.getProfile().getName() : player.getTabListDisplayName().getString(); }
 }

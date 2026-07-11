@@ -7,11 +7,11 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
@@ -112,15 +112,16 @@ public class AutoParkourModule extends Module {
     );
 
     private int tick = 0;
-    private List<BlockPos> blocked = new ArrayList<>();
+    private final List<BlockPos> blocked = new ArrayList<>();
     private enum Mode { Whitelist, Blacklist, All }
     private enum SortMode { Nearest, Furthest, Any, Random }
 
+    @SuppressWarnings("deprecation")
     @EventHandler
     private void onTick(TickEvent.Post event){
-        if(flightKick.get() && !mc.player.isOnGround()){
-            BlockPos pos = BlockPos.findClosest(mc.player.getBlockPos(), rangeX.get()*2, rangeX.get()*2, blockPos -> mc.world.getBlockState(blockPos).isSolid()).orElse(mc.player.getBlockPos());
-            mc.player.setPosition(pos.getX()+0.5, pos.getY()+1, pos.getZ()+0.5);
+        if(flightKick.get() && !mc.player.onGround()){
+            BlockPos pos = BlockPos.findClosestMatch(mc.player.blockPosition(), rangeX.get()*2, rangeX.get()*2, blockPos -> mc.level.getBlockState(blockPos).isSolid()).orElse(mc.player.blockPosition());
+            mc.player.setPos(pos.getX()+0.5, pos.getY()+1, pos.getZ()+0.5);
             blocked.clear();
         }
         if(this.tick > 0){ this.tick--; return; }
@@ -136,20 +137,20 @@ public class AutoParkourModule extends Module {
         if(sortMode.get() == SortMode.Any) { candidates = new ArrayList<>(List.of(candidates.get(0))); }
         else if(sortMode.get() == SortMode.Random){ java.util.Collections.shuffle(candidates); }
         candidates.sort((a, b) -> {
-            Vec3d p = mc.player.getPos();
-            return Double.compare(p.squaredDistanceTo(new Vec3d(a.getX(), a.getY(), a.getZ())), p.squaredDistanceTo(new Vec3d(b.getX(), b.getY(), b.getZ())));
+            Vec3 p = mc.player.position();
+            return Double.compare(p.distanceToSqr(new Vec3(a.getX(), a.getY(), a.getZ())), p.distanceToSqr(new Vec3(b.getX(), b.getY(), b.getZ())));
         });
         if(sortMode.get() == SortMode.Furthest) java.util.Collections.reverse(candidates);
 
         blocked.clear();
-        blocked.add(mc.player.getBlockPos());
+        blocked.add(mc.player.blockPosition());
         blocked.add(candidates.get(0));
-        mc.player.setPosition(candidates.get(0).getX() + offsetX.get(), candidates.get(0).getY() + offsetY.get(), candidates.get(0).getZ() + offsetZ.get());
+        mc.player.setPos(candidates.get(0).getX() + offsetX.get(), candidates.get(0).getY() + offsetY.get(), candidates.get(0).getZ() + offsetZ.get());
         this.tick = delay.get();
     }
 
     private boolean canMove(BlockPos to){
-        BlockState block = mc.world.getBlockState(to);
+        BlockState block = mc.level.getBlockState(to);
         if(blocks.get().contains(block.getBlock()) && mode.get() == Mode.Blacklist) return false;
         for(BlockPos pos : blocked) if(pos.getX() == to.getX() && pos.getZ() == to.getZ()) return false;
         return (mode.get() == Mode.All || (mode.get() == Mode.Whitelist) == blocks.get().contains(block.getBlock())) && !block.isAir();

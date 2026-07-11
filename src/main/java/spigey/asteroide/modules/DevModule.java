@@ -13,10 +13,10 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Set;
@@ -86,15 +86,15 @@ public class DevModule extends Module {
             if(packetDelay.get()) info(String.format("Last packet %d ticks ago", lastPacket));
             this.lastPacket = 0;
         }
-        if(event.packet instanceof CustomPayloadC2SPacket && testBrand.get()){
-            info("§cClient Brand: §a" + ((CustomPayloadC2SPacket) event.packet).payload().getId().id());
-            System.out.print(((CustomPayloadC2SPacket) event.packet).payload().getId().id());
+        if(event.packet instanceof ServerboundCustomPayloadPacket && testBrand.get()){
+            info("§cClient Brand: §a" + ((ServerboundCustomPayloadPacket) event.packet).payload().type().id());
+            System.out.print(((ServerboundCustomPayloadPacket) event.packet).payload().type().id());
         }
-        if (!(event.packet instanceof ClickSlotC2SPacket) || !slots.get()) return;
-        ChatUtils.sendMsg(Text.of("§cSLOT " + ((ClickSlotC2SPacket) event.packet).getSlot()));
-        ChatUtils.sendMsg(Text.of("§aREVISION " + ((ClickSlotC2SPacket) event.packet).getRevision()));
-        ChatUtils.sendMsg(Text.of("§9SYNC ID " + ((ClickSlotC2SPacket) event.packet).getSyncId()));
-        ChatUtils.sendMsg(Text.of("§7ACTION " + ((ClickSlotC2SPacket) event.packet).getActionType().name()));
+        if (!(event.packet instanceof ServerboundContainerClickPacket) || !slots.get()) return;
+        ChatUtils.sendMsg(Component.nullToEmpty("§cSLOT " + ((ServerboundContainerClickPacket) event.packet).getSlotNum()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§aREVISION " + ((ServerboundContainerClickPacket) event.packet).getStateId()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§9SYNC ID " + ((ServerboundContainerClickPacket) event.packet).getContainerId()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§7ACTION " + ((ServerboundContainerClickPacket) event.packet).getClickType().name()));
         event.cancel();
     }
 

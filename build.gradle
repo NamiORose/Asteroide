@@ -10,19 +10,20 @@ group = project.maven_group
 
 repositories {
     maven {
-        name = "Meteor Dev Releases"
-        url = "https://maven.meteordev.org/releases"
+        name = "Meteor Dev Snapshots"
+        url = "https://maven.meteordev.org/snapshots"
     }
     maven {
         name = "Meteor Dev Snapshots"
-        url = "https://maven.meteordev.org/snapshots"
+        url = "https://maven.meteordev.org/releases"
     }
 }
 
 dependencies {
     // Fabric
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
+//    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation 'org.java-websocket:Java-WebSocket:1.5.4'
     include 'org.java-websocket:Java-WebSocket:1.5.4'

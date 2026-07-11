@@ -8,7 +8,7 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.misc.AutoRespawn;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
@@ -53,8 +53,8 @@ public class AutoBack extends Module {
 
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event){
-        if(mode.get() != AutoBackMode.OnDeath || !isActive() || !(event.packet instanceof DeathMessageS2CPacket packet)) return;
-        if(mc.world.getEntityById(packet.playerId()) != mc.player){return;}
+        if(mode.get() != AutoBackMode.OnDeath || !isActive() || !(event.packet instanceof ClientboundPlayerCombatKillPacket packet)) return;
+        if(mc.level.getEntity(packet.playerId()) != mc.player){return;}
         this.tick = delay.get();
     }
 

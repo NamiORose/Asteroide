@@ -1,7 +1,7 @@
 package spigey.asteroide.mixin;
 
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import net.minecraft.world.border.WorldBorder;
+import net.minecraft.world.level.border.WorldBorder;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -10,7 +10,7 @@ import spigey.asteroide.modules.BorderNoclipModule;
 
 @Mixin(WorldBorder.class)
 public abstract class WorldBorderMixin {
-    @Inject(method = "canCollide", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isInsideCloseToBorder", at = @At("HEAD"), cancellable = true)
     private void canCollide(CallbackInfoReturnable<Boolean> info) {
         if (Modules.get().get(BorderNoclipModule.class).isActive()) info.setReturnValue(false);
     }

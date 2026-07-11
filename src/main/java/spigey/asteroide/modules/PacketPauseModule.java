@@ -8,7 +8,7 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.packet.Packet;
+import net.minecraft.network.protocol.Packet;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
@@ -42,8 +42,8 @@ public class PacketPauseModule extends Module {
 
     @Override
     public void onDeactivate() {
-        if (mc.player == null || mc.world == null) { pausedPackets.clear(); return; }
-        for (Packet<?> packet : pausedPackets) mc.player.networkHandler.sendPacket(packet);
+        if (mc.player == null || mc.level == null) { pausedPackets.clear(); return; }
+        for (Packet<?> packet : pausedPackets) mc.player.connection.send(packet);
         if(feedback.get()) info("Sent " + pausedPackets.size() + " paused packets.");
         pausedPackets.clear();
     }

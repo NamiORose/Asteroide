@@ -32,7 +32,7 @@ public class ServerCrashModule extends Module {
         assert mc.player != null;
         error("Remember to disable Bee rendering using NoRender and install the EntityCulling mod!");
         info("Attempting to crash the Server");
-        if(!mc.player.hasPermissionLevel(2)){error(perm(2));}
+        if(!mc.player.hasPermissions(2)){error(perm(2));}
         if(cmdfeedback.get()){msg("/gamerule sendCommandFeedback false");}
         if(logadmin.get()){msg("/gamerule logAdminCommands false");}
         msg("/execute as @e as @e run summon bee ~ ~-10 ~ {Invulnerable:1}");

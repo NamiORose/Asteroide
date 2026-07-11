@@ -2,11 +2,8 @@ package spigey.asteroide.modules;
 
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import spigey.asteroide.AsteroideAddon;
-import meteordevelopment.meteorclient.settings.BlockListSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
 import java.util.List;
 
 public class BlockHitboxesModule extends Module {

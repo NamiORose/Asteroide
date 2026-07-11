@@ -4,8 +4,8 @@ import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import spigey.asteroide.AsteroideAddon;
 
 public class NoRecoilModule extends Module {
@@ -43,19 +43,19 @@ public class NoRecoilModule extends Module {
 
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event) {
-        if(!(event.packet instanceof PlayerPositionLookS2CPacket packet)) return;
-        if(debugMode.get()) info(String.format("Yaw %.2f | Pitch %.2f | Pos %s", packet.change().yaw(), packet.change().pitch(), packet.change().position().toString()));
+        if(!(event.packet instanceof ClientboundPlayerPositionPacket packet)) return;
+        if(debugMode.get()) info(String.format("Yaw %.2f | Pitch %.2f | Pos %s", packet.change().yRot(), packet.change().xRot(), packet.change().position().toString()));
 
-        float pitch = packet.change().pitch(); float yaw = packet.change().yaw();
-        if(isInRange(pitch, RotationType.Pitch)) mc.player.setPitch((float) (mc.player.getPitch() - (pitch * multiplier.get())));
-        if(isInRange(yaw, RotationType.Yaw)) mc.player.setYaw((float) (mc.player.getYaw() - (yaw * multiplier.get())));
+        float pitch = packet.change().xRot(); float yaw = packet.change().yRot();
+        if(isInRange(pitch, RotationType.Pitch)) mc.player.setXRot((float) (mc.player.getXRot() - (pitch * multiplier.get())));
+        if(isInRange(yaw, RotationType.Yaw)) mc.player.setYRot((float) (mc.player.getYRot() - (yaw * multiplier.get())));
         if(!isInRange(pitch, RotationType.Pitch) && !isInRange(yaw, RotationType.Yaw)) return;
 
-        mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
+        mc.getConnection().send(new ServerboundMovePlayerPacket.Rot(
             // mc.player.getX(), mc.player.getY(), mc.player.getZ(),
-            (float) (mc.player.getYaw() - (yaw * multiplier.get())),
-            (float) (mc.player.getPitch() - (pitch * multiplier.get())),
-            mc.player.isOnGround(),
+            (float) (mc.player.getYRot() - (yaw * multiplier.get())),
+            (float) (mc.player.getXRot() - (pitch * multiplier.get())),
+            mc.player.onGround(),
             true
         ));
     }

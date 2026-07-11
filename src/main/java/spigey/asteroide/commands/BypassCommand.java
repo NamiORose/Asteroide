@@ -4,8 +4,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
 import spigey.asteroide.util;
 
 public class BypassCommand extends Command {
@@ -14,7 +14,7 @@ public class BypassCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.executes(context -> {
             error("You have to specify a message!");
             return SINGLE_SUCCESS;
@@ -34,7 +34,7 @@ public class BypassCommand extends Command {
                 .replaceAll("v", "ν")
                 .replaceAll("x", "х")
                 .replaceAll("y", "у");
-            ChatUtils.sendMsg(Text.of("Done creating the bypassed message!"));
+            ChatUtils.sendMsg(Component.nullToEmpty("Done creating the bypassed message!"));
             ChatUtils.sendMsg(util.getSendButton(util.getCopyButton(copy), copy));
             return SINGLE_SUCCESS;
         }));

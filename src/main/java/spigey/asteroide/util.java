@@ -3,12 +3,11 @@ package spigey.asteroide;
 import meteordevelopment.meteorclient.commands.Commands;
 import meteordevelopment.meteorclient.utils.misc.text.MeteorClickEvent;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -140,41 +139,41 @@ public class util {
         };
     }
 
-    public static MutableText getCopyButton(String copy){
-        MutableText Button = Text.literal("[COPY]");
+    public static MutableComponent getCopyButton(String copy){
+        MutableComponent Button = Component.literal("[COPY]");
         Button.setStyle(Button.getStyle()
-            .withFormatting(Formatting.GREEN)
+            .applyFormat(ChatFormatting.GREEN)
             .withClickEvent(new MeteorClickEvent(
                 ClickEvent.Action.COPY_TO_CLIPBOARD,
                 copy
             ))
             .withHoverEvent(new HoverEvent(
                 HoverEvent.Action.SHOW_TEXT,
-                Text.literal("Click to Copy")
+                Component.literal("Click to Copy")
             ))
         );
         return Button;
     }
 
-    public static MutableText getSendButton(MutableText message, String send){
-        MutableText Button = Text.literal("[SEND]");
+    public static MutableComponent getSendButton(MutableComponent message, String send){
+        MutableComponent Button = Component.literal("[SEND]");
         Button.setStyle(Button.getStyle()
-            .withFormatting(Formatting.GREEN)
+            .applyFormat(ChatFormatting.GREEN)
             .withClickEvent(new MeteorClickEvent(
                 ClickEvent.Action.RUN_COMMAND,
                 Commands.get("say").toString(send)
             ))
             .withHoverEvent(new HoverEvent(
                 HoverEvent.Action.SHOW_TEXT,
-                Text.literal("Click to Send")
+                Component.literal("Click to Send")
             ))
         );
         return message.append(" ").append(Button);
     }
 
-    public static String withoutStyle(Text text){
+    public static String withoutStyle(Component text){
         StringBuilder sb = new StringBuilder();
-        for(Text str : text.withoutStyle()) sb.append(str.getString());
+        for(Component str : text.toFlatList()) sb.append(str.getString());
         return sb.toString();
     }
 

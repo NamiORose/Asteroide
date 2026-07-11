@@ -33,14 +33,14 @@ public class CreativeFlightModule extends Module {
     public void onTick(TickEvent.Post event) {
         if(!isActive()) return;
         assert mc.player != null;
-        mc.player.getAbilities().allowFlying = true;
-        mc.player.getAbilities().setFlySpeed(Float.parseFloat(speed.get().toString()));
+        mc.player.getAbilities().mayfly = true;
+        mc.player.getAbilities().setFlyingSpeed(Float.parseFloat(speed.get().toString()));
     }
     @Override
     public void onDeactivate() {
         assert mc.player != null;
-        mc.player.getAbilities().setFlySpeed(0.05F);
-        if(!mc.player.getAbilities().creativeMode) {mc.player.getAbilities().allowFlying = false; mc.player.getAbilities().flying = false;}
+        mc.player.getAbilities().setFlyingSpeed(0.05F);
+        if(!mc.player.getAbilities().instabuild) {mc.player.getAbilities().mayfly = false; mc.player.getAbilities().flying = false;}
     }
     @EventHandler
     private void onSendPacket(PacketEvent.Send event){

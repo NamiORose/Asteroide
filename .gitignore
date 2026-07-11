@@ -1,12 +1,8 @@
 # gradle
 
 .gradle/
-build/classes
-build/devlibs
-build/generated
-build/loom-cache
-build/resources
-build/tmp
+/build/
+!**/src/**/build/
 out/
 classes/
 
@@ -41,6 +37,3 @@ run/
 TODO.txt
 Changelog.md
 private/
-build/libs/org
-build/reports
-/build/processIncludeJars/Java-WebSocket-1.5.4.jar

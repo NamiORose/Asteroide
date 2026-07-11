@@ -18,13 +18,14 @@ import meteordevelopment.starscript.Script;
 import meteordevelopment.starscript.compiler.Compiler;
 import meteordevelopment.starscript.compiler.Parser;
 import meteordevelopment.starscript.utils.StarscriptError;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import spigey.asteroide.AsteroideAddon;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
+
+import com.mojang.blaze3d.platform.NativeImage;
 
 public class ImageHUD extends HudElement {
 
@@ -36,7 +37,7 @@ public class ImageHUD extends HudElement {
     private boolean empty = true;
     private int ticks = 0;
 
-    private static final Identifier TEXID = Identifier.of("asteroide", "tex");
+    private static final ResourceLocation TEXID = ResourceLocation.fromNamespaceAndPath("asteroide", "tex");
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<Boolean> dynamicSize = sgGeneral.add(new BoolSetting.Builder()
@@ -158,12 +159,12 @@ public class ImageHUD extends HudElement {
                 String compiled = compile(url.get()).isEmpty() ? url.get() : compile(url.get());
                 var tempImage = NativeImage.read(Http.get(compiled).sendInputStream());
                 mc.execute(() -> {
-                    try{ mc.getTextureManager().registerTexture(TEXID, new NativeImageBackedTexture(tempImage)); }
-                    catch(Exception e){mc.player.sendMessage(Text.of(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), e)), false);}
+                    try{ mc.getTextureManager().register(TEXID, new DynamicTexture(tempImage)); }
+                    catch(Exception e){mc.player.displayClientMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), e)), false);}
                 });
                 this.image = tempImage;
                 empty = false;
-            } catch (Exception ex) { mc.player.sendMessage(Text.of(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), ex)), false); }
+            } catch (Exception ex) { mc.player.displayClientMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), ex)), false); }
             locked = false;
         }).start();
         updateSize();

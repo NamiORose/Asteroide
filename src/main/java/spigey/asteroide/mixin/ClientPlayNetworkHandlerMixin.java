@@ -1,15 +1,15 @@
 package spigey.asteroide.mixin;
 
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import spigey.asteroide.modules.TypoModule;
 
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(ClientPacketListener.class)
 public class ClientPlayNetworkHandlerMixin {
-    @ModifyVariable(method = "sendChatCommand(Ljava/lang/String;)V", at = @At("HEAD"), argsOnly = true)
+    @ModifyVariable(method = "sendCommand(Ljava/lang/String;)V", at = @At("HEAD"), argsOnly = true)
     private String modifyCommand(String command) {
         TypoModule typo = Modules.get().get(TypoModule.class);
         if(!typo.isActive() || !typo.commands.get()) return command;

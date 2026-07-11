@@ -2,7 +2,7 @@ package spigey.asteroide.commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.command.CommandSource;
+import net.minecraft.commands.SharedSuggestionProvider;
 
 public class MeCommand extends Command {
     public MeCommand() {
@@ -10,14 +10,14 @@ public class MeCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<CommandSource> builder) {
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
         builder.executes(context -> {
             info("§f------ Info ------");
-            info("§fUsername: §7" + mc.getSession().getUsername());
-            info("§fUUID: §7" + mc.getSession().getUuidOrNull());
-            info("§fAccountType: §7" + mc.getSession().getAccountType());
-            info("§fServer: §7" + mc.getServer());
-            info("§fScreen: §7" + mc.currentScreen);
+            info("§fUsername: §7" + mc.getUser().getName());
+            info("§fUUID: §7" + mc.getUser().getProfileId());
+            info("§fAccountType: §7" + mc.getUser().getType());
+            info("§fServer: §7" + mc.getSingleplayerServer());
+            info("§fScreen: §7" + mc.screen);
             return SINGLE_SUCCESS;
         });
     }

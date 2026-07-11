@@ -4,7 +4,7 @@ import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import spigey.asteroide.AsteroideAddon;
 
 public class PacketSpammerModule extends Module {
@@ -32,8 +32,8 @@ public class PacketSpammerModule extends Module {
 
     private void spam(){
         for(int i = 0; i < amount.get(); i++) {
-            if(mc.player == null || mc.world == null) { error(mc.player == null ? "Player is null" : "World is null"); break; }
-            mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.isOnGround(), true));
+            if(mc.player == null || mc.level == null) { error(mc.player == null ? "Player is null" : "World is null"); break; }
+            mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.onGround(), true));
         }
     }
 }
