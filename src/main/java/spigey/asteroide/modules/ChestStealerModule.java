@@ -12,16 +12,18 @@ import net.minecraft.client.gui.screens.inventory.HopperScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.inventory.ShulkerBoxScreen;
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ChestStealerModule extends Module {
     public ChestStealerModule() {
@@ -159,14 +161,18 @@ public class ChestStealerModule extends Module {
     }
 
     private ServerboundContainerClickPacket getPacket(ItemStack uwu) { // intellij wtf
-        ServerboundContainerClickPacket packet = new ServerboundContainerClickPacket(0, 0, 0, 0, ClickType.PICKUP, ItemStack.EMPTY, Int2ObjectMaps.singleton(0, ItemStack.EMPTY));
-        if(mc.screen instanceof ContainerScreen) packet = new ServerboundContainerClickPacket(((ContainerScreen) mc.screen).getMenu().containerId, 1, i, 0, ClickType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(i, ItemStack.EMPTY));
-        if(mc.screen instanceof ShulkerBoxScreen) packet = new ServerboundContainerClickPacket(((ShulkerBoxScreen) mc.screen).getMenu().containerId, 1, i, 0, ClickType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(i, ItemStack.EMPTY));
+        ServerboundContainerClickPacket packet = new ServerboundContainerClickPacket(0, 0, (short) 0, (byte) 0, ContainerInput.PICKUP, Int2ObjectMaps.singleton(0, HashedStack.EMPTY), HashedStack.EMPTY);
+
+        final HashedStack hashedStack = HashedStack.create(uwu, Objects.requireNonNull(mc.player).connection.decoratedHashOpsGenenerator());
+        // todo: validate .singleton(..., HashedStack.EMPTY) ????
+        if(mc.screen instanceof ContainerScreen) packet = new ServerboundContainerClickPacket(((ContainerScreen) mc.screen).getMenu().containerId, 1, (short) i, (byte) 0, ContainerInput.QUICK_MOVE, Int2ObjectMaps.singleton(i, HashedStack.EMPTY), hashedStack);
+        if(mc.screen instanceof ShulkerBoxScreen) packet = new ServerboundContainerClickPacket(((ShulkerBoxScreen) mc.screen).getMenu().containerId, 1, (short) i, (byte) 0, ContainerInput.QUICK_MOVE, Int2ObjectMaps.singleton(i, HashedStack.EMPTY), hashedStack);
         return packet;
     }
 
     private ServerboundContainerClickPacket getPacket(ItemStack uwu, Slot slot) {
-        return new ServerboundContainerClickPacket(((AbstractContainerScreen<?>) mc.screen).getMenu().containerId, 1, slot.index, 0, ClickType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(slot.index, ItemStack.EMPTY));
+        final HashedStack hashedStack = HashedStack.create(uwu, Objects.requireNonNull(mc.player).connection.decoratedHashOpsGenenerator());
+        return new ServerboundContainerClickPacket(((AbstractContainerScreen<?>) mc.screen).getMenu().containerId, 1, (short) slot.index, (byte) 0, ContainerInput.QUICK_MOVE, Int2ObjectMaps.singleton(slot.index, HashedStack.EMPTY), hashedStack);
     }
 
     @EventHandler

@@ -2,7 +2,7 @@ package spigey.asteroide.commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 import static spigey.asteroide.util.getPermissionLevel;
 
@@ -12,7 +12,7 @@ public class PermLevel extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<ClientSuggestionProvider> builder) {
         builder.executes(context -> {
             info(switch(getPermissionLevel()){
                 case 0 -> "§cYou do not have any permission on this server.";

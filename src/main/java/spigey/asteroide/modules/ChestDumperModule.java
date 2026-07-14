@@ -8,17 +8,21 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ChestDumperModule extends Module {
     public ChestDumperModule() {
@@ -104,7 +108,8 @@ public class ChestDumperModule extends Module {
         return (name.get().isEmpty() && contain.get().isEmpty() && items.get().isEmpty()) || stealMode.get() != StealMode.Whitelist;
     }
     private ServerboundContainerClickPacket getPacket(ItemStack uwu, Slot slot) {
-        return new ServerboundContainerClickPacket(((AbstractContainerScreen<?>) mc.screen).getMenu().containerId, 1, slot.index, 0, ClickType.QUICK_MOVE, uwu, Int2ObjectMaps.singleton(slot.index, ItemStack.EMPTY));
+        final HashedStack hashedStack = HashedStack.create(uwu, Objects.requireNonNull(mc.player).connection.decoratedHashOpsGenenerator());
+        return new ServerboundContainerClickPacket(((AbstractContainerScreen<?>) mc.screen).getMenu().containerId, 1, (short) slot.index, (byte) 0, ContainerInput.QUICK_MOVE, Int2ObjectMaps.singleton(slot.index, hashedStack), hashedStack);
     }
 
     @EventHandler

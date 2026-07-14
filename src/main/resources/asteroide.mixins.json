@@ -1,25 +1,26 @@
 {
-  "required": true,
-  "package": "spigey.asteroide.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "injectors": {
-    "defaultRequire": 1
-  },
-  "mixins": [
-    "BedrockSpoofMixin",
-    "BlockOutlineMixin",
-    "ClientPlayNetworkHandlerMixin",
-    "EntityRendererMixin",
-    "HandshakeC2SMixin",
-    "ItemStackMixin",
-    "PlayerListHudMixin",
-    "TranslationMixin",
-    "WorldBorderMixin"
-  ],
-  "client": [
-    "BossBarHudMixin",
-    "ChatHudMixin",
-    "CommandAccessor",
-    "CommandBlockScreenMixin"
+    "required": true,
+    "package": "spigey.asteroide.mixin",
+    "compatibilityLevel": "JAVA_17",
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "mixins": [
+        "BedrockSpoofMixin",
+        "BlockOutlineMixin",
+        "ClientPlayNetworkHandlerMixin",
+        "EntityRendererMixin",
+        "HandshakeC2SMixin",
+        "ItemStackMixin",
+        "PlayerListHudMixin",
+        "ScreenMixin",
+        "TranslationMixin",
+        "WorldBorderMixin"
+    ],
+    "client": [
+        "BossBarHudMixin",
+        "ChatHudMixin",
+        "CommandAccessor",
+        "CommandBlockScreenMixin"
   ]
 }

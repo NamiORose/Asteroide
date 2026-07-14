@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import spigey.asteroide.modules.BlockHitboxesModule;
 import spigey.asteroide.modules.PassthroughModule;
 
-@Mixin(BlockBehaviour.BlockStateBase.class)
+@Mixin(value = BlockBehaviour.BlockStateBase.class, remap = false)
 public abstract class BlockOutlineMixin {
-    @Inject(method = "getCollisionShape", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("HEAD"), cancellable = true)
     private void enlargeOutline(BlockGetter world, BlockPos pos, CallbackInfoReturnable<VoxelShape> cir) {
         try {
             BlockHitboxesModule bh = Modules.get().get(BlockHitboxesModule.class);

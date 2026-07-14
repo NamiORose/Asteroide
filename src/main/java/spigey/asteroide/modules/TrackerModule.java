@@ -49,7 +49,7 @@ public class TrackerModule extends Module {
     public void onActivate() {
         lastTickTime = System.currentTimeMillis();
         if(AsteroideAddon.trackedPlayer != null && mc.getConnection() != null &&
-            mc.getConnection().getOnlinePlayers().stream().noneMatch(player -> player.getProfile().getName().equals(AsteroideAddon.trackedPlayer))) {
+            mc.getConnection().getOnlinePlayers().stream().noneMatch(player -> player.getProfile().name().equals(AsteroideAddon.trackedPlayer))) {
             ChatUtils.sendMsg(Component.nullToEmpty("§7Tracker enabled, use " + Config.get().prefix.get() + "track <player> to start tracking someone. §cThe tracked Player must be loaded!"));
         }
     }
@@ -67,7 +67,7 @@ public class TrackerModule extends Module {
         if (AsteroideAddon.trackedPlayer == null || mc.player == null) return;
         Player entity = null;
         for (AbstractClientPlayer player : mc.level.players()) {
-            if (player.getGameProfile().getName().equals(AsteroideAddon.trackedPlayer)) {
+            if (player.getGameProfile().name().equals(AsteroideAddon.trackedPlayer)) {
                 entity = player;
                 break;
             }

@@ -4,7 +4,8 @@ import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.entity.ProjectileEntitySimulator;
+import meteordevelopment.meteorclient.utils.entity.simulator.ProjectileEntitySimulator;
+import meteordevelopment.meteorclient.utils.entity.simulator.SimulationStep;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.world.entity.Entity;
@@ -18,6 +19,7 @@ import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AutoShieldModule extends Module {
@@ -65,6 +67,8 @@ public class AutoShieldModule extends Module {
         .build()
     );
 
+    private static final ProjectileEntitySimulator.MotionData META_PROJECTILE = new ProjectileEntitySimulator.MotionData(0, 0, 0.05, 1, 0.6F, null);
+
     private boolean blocking = false;
     private int tick = -1;
 
@@ -96,15 +100,27 @@ public class AutoShieldModule extends Module {
 
     private boolean isLookingAtUs(Entity entity) {
         ProjectileEntitySimulator sim = new ProjectileEntitySimulator();
-        if(entity instanceof Projectile) sim.set(entity, true);
-        else sim.set(entity, 0.05, 0.6, true);
-        for(int i = 0; i < 100; i++){
-            HitResult result = sim.tick();
-            if(result == null) continue;
-            if(result.getType() == HitResult.Type.ENTITY && ((EntityHitResult) result).getEntity() == mc.player) return true;
+        if(entity instanceof Projectile) {
+            if (!sim.set(entity))
+                return false;
+        } else
+            sim.set(entity, 0, true, 0.125F, META_PROJECTILE); // todo: validate
+
+        for(int i = 0; i < 100; i++) {
+            final SimulationStep step = sim.tick();
+            if(step == null) continue;
+            if (step.hitResults.length > 0) {
+                for (int j = 0; j < step.hitResults.length; j++)
+                    if (step.hitResults[j].getType() == HitResult.Type.ENTITY &&
+                        ((EntityHitResult)step.hitResults[j]).getEntity() == mc.player
+                    )
+                        return true;
+                return false;
+            }
+            if(step.shouldStop) return false; // todo: validate
         }
         return false;
     }
 
-    private boolean isHoldingShield() { return items.get().contains(mc.player.getOffhandItem().getItem()) || items.get().contains(mc.player.getMainHandItem().getItem()); }
+    private boolean isHoldingShield() { return items.get().contains(Objects.requireNonNull(mc.player).getOffhandItem().getItem()) || items.get().contains(mc.player.getMainHandItem().getItem()); }
 }

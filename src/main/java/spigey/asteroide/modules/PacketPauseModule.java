@@ -9,6 +9,8 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.network.PacketUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketType;
+import org.jetbrains.annotations.NotNull;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.ArrayList;
@@ -18,10 +20,10 @@ public class PacketPauseModule extends Module {
     public PacketPauseModule() { super(AsteroideAddon.CATEGORY, "Packet-Pause", "Pauses packets until the module is disabled."); }
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
-    private final Setting<Set<Class<? extends Packet<?>>>> packets = sgGeneral.add(new PacketListSetting.Builder()
+    private final Setting<Set<PacketType<? extends @NotNull Packet<?>>>> packets = sgGeneral.add(new PacketListSetting.Builder()
         .name("packets")
         .description("Packets to pause.")
-        .filter(aClass -> PacketUtils.getC2SPackets().contains(aClass))
+        .filter(aClass -> PacketUtils.getServerboundPackets().contains(aClass))
         .build()
     );
     private final Setting<Boolean> feedback = sgGeneral.add(new BoolSetting.Builder()
@@ -31,11 +33,11 @@ public class PacketPauseModule extends Module {
         .build()
     );
 
-    private ArrayList<Packet<?>> pausedPackets = new ArrayList<>();
+    private final ArrayList<Packet<?>> pausedPackets = new ArrayList<>();
 
     @EventHandler
     private void onPacketSend(PacketEvent.Send event) {
-        if (!isActive() || !packets.get().contains(event.packet.getClass())) return;
+        if (!isActive() || !packets.get().contains(event.packet.type())) return;
         pausedPackets.add(event.packet);
         event.cancel();
     }

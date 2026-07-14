@@ -64,7 +64,7 @@ public class BetterCollisionsModule extends Module {
         if (!unloadedChunks.get()) return;
         if (event.packet instanceof ServerboundMoveVehiclePacket packet) {
             if (!mc.level.getChunkSource().hasChunk((int) packet.position().x() >> 4, (int) packet.position().z() >> 4)) {
-                mc.player.getVehicle().absMoveTo(mc.player.getVehicle().xo, mc.player.getVehicle().yo, mc.player.getVehicle().zo);
+                mc.player.getVehicle().absSnapTo(mc.player.getVehicle().xo, mc.player.getVehicle().yo, mc.player.getVehicle().zo);
                 event.cancel();
             }
         } else if (event.packet instanceof ServerboundMovePlayerPacket packet) {

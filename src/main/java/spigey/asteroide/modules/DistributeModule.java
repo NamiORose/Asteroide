@@ -65,11 +65,11 @@ public class DistributeModule extends Module {
         if(idx >= this.players.size()) idx = 0;
         PlayerInfo player = this.players.get(idx);
         for (String s : ranks.get()) if (displayName(player).toLowerCase().contains(s.toLowerCase())) return;
-        for (String s : users.get()) if (player.getProfile().getName().toLowerCase().contains(s.toLowerCase()) || player.getProfile().getName().contains("§")) return;
-        ChatUtils.sendPlayerMsg(String.format("/%s", command.get().get(new Random().nextInt(command.get().size())).replace("{name}", player.getProfile().getName()).replace("/", "")));
+        for (String s : users.get()) if (player.getProfile().name().toLowerCase().contains(s.toLowerCase()) || player.getProfile().name().contains("§")) return;
+        ChatUtils.sendPlayerMsg(String.format("/%s", command.get().get(new Random().nextInt(command.get().size())).replace("{name}", player.getProfile().name()).replace("/", "")));
         idx++;
         tick = delay.get();
     }
 
-    private String displayName(PlayerInfo player){ return player.getTabListDisplayName() == null ? player.getProfile().getName() : player.getTabListDisplayName().getString(); }
+    private String displayName(PlayerInfo player){ return player.getTabListDisplayName() == null ? player.getProfile().name() : player.getTabListDisplayName().getString(); }
 }

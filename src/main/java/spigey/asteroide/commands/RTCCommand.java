@@ -8,12 +8,11 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.MeteorStarscript;
-import meteordevelopment.meteorclient.utils.misc.text.MeteorClickEvent;
-import meteordevelopment.starscript.Script;
-import meteordevelopment.starscript.compiler.Compiler;
-import meteordevelopment.starscript.compiler.Parser;
-import meteordevelopment.starscript.utils.StarscriptError;
-import net.minecraft.commands.SharedSuggestionProvider;
+import org.meteordev.starscript.Script;
+import org.meteordev.starscript.compiler.Compiler;
+import org.meteordev.starscript.compiler.Parser;
+import org.meteordev.starscript.utils.StarscriptError;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -22,6 +21,7 @@ import spigey.asteroide.AsteroideAddon;
 import spigey.asteroide.modules.RTCSettingsModule;
 import spigey.asteroide.utils.ws;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 public class RTCCommand extends Command {
@@ -30,7 +30,7 @@ public class RTCCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<ClientSuggestionProvider> builder) {
         builder.then(argument("message", StringArgumentType.greedyString()).suggests(this::getSuggestions).executes(context -> {
             ws.sendChat(compile(StringArgumentType.getString(context, "message")).split(" "));
             return SINGLE_SUCCESS;
@@ -50,7 +50,7 @@ public class RTCCommand extends Command {
             return SINGLE_SUCCESS;
         }));
         builder.then(literal("discord").executes(ctx ->{
-            mc.player.displayClientMessage(getButton(Component.literal("§8§l[§c§lAsteroide§8§l]§7 Join our Discord")), false);
+            mc.player.sendSystemMessage(getButton(Component.literal("§8§l[§c§lAsteroide§8§l]§7 Join our Discord")));
             return SINGLE_SUCCESS;
         }));
         builder.then(literal("reconnect").executes(ctx -> {
@@ -64,19 +64,13 @@ public class RTCCommand extends Command {
     private static MutableComponent getButton(MutableComponent message){
         MutableComponent Button = Component.literal("§8[ §9HERE §8]");
         Button.setStyle(Button.getStyle()
-            .withClickEvent(new MeteorClickEvent(
-                ClickEvent.Action.OPEN_URL,
-                "https://discord.gg/QFzE3UzdpQ"
-            ))
-            .withHoverEvent(new HoverEvent(
-                HoverEvent.Action.SHOW_TEXT,
-                Component.literal("§7discord.gg/QFzE3UzdpQ")
-            ))
+            .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://discord.gg/QFzE3UzdpQ")))
+            .withHoverEvent(new HoverEvent.ShowText(Component.literal("§7discord.gg/QFzE3UzdpQ")))
         );
         return message.append(" ").append(Button);
     }
 
-    private CompletableFuture<Suggestions> getSuggestions(CommandContext<SharedSuggestionProvider> ctx, SuggestionsBuilder builder) {
+    private CompletableFuture<Suggestions> getSuggestions(CommandContext<ClientSuggestionProvider> ctx, SuggestionsBuilder builder) {
         int rem = builder.getRemainingLowerCase().lastIndexOf('@');
         if (rem == -1) return builder.buildFuture();
         SuggestionsBuilder offset = builder.createOffset(builder.getStart() + rem + 1);

@@ -9,14 +9,14 @@ import meteordevelopment.meteorclient.settings.Vector3dSetting;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.misc.MeteorStarscript;
 import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.starscript.Script;
-import meteordevelopment.starscript.compiler.Compiler;
-import meteordevelopment.starscript.compiler.Parser;
+import org.meteordev.starscript.Script;
+import org.meteordev.starscript.compiler.Compiler;
+import org.meteordev.starscript.compiler.Parser;
 import org.joml.Vector3d;
 import spigey.asteroide.AsteroideAddon;
 
 import static spigey.asteroide.util.msg;
-import meteordevelopment.starscript.utils.StarscriptError;
+import org.meteordev.starscript.utils.StarscriptError;
 import net.minecraft.world.phys.Vec3;
 
 public class AutoCommandModule extends Module {

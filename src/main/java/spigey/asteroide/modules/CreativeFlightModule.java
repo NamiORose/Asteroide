@@ -2,7 +2,7 @@ package spigey.asteroide.modules;
 
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.mixin.PlayerMoveC2SPacketAccessor;
+import meteordevelopment.meteorclient.mixin.ServerboundMovePlayerPacketAccessor;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
@@ -44,9 +44,9 @@ public class CreativeFlightModule extends Module {
     }
     @EventHandler
     private void onSendPacket(PacketEvent.Send event){
-        if(!(event.packet instanceof PlayerMoveC2SPacketAccessor)) return;
+        if(!(event.packet instanceof ServerboundMovePlayerPacketAccessor)) return;
         if(!isActive()) return;
         if(!nofall.get()) return;
-        ((PlayerMoveC2SPacketAccessor) event.packet).setOnGround(true);
+        ((ServerboundMovePlayerPacketAccessor) event.packet).meteor$setOnGround(true);
     }
 }

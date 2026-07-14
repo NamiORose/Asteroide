@@ -5,6 +5,7 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import spigey.asteroide.AsteroideAddon;
@@ -32,7 +33,7 @@ public class VulcanDisablerModule extends Module {
 
     @Override
     public void onActivate(){
-        if(((List<ItemStack>) mc.player.getArmorSlots()).get(2).getItem() != Items.ELYTRA){
+        if(mc.player.getInventory().getItem(Inventory.SLOT_BODY_ARMOR).getItem() != Items.ELYTRA){
             if(!muteTips.get()) info("You need to wear an elytra!");
             toggle();
             return;

@@ -1,7 +1,7 @@
 package spigey.asteroide.modules;
 
-import meteordevelopment.meteorclient.events.meteor.KeyEvent;
-import meteordevelopment.meteorclient.events.meteor.MouseButtonEvent;
+import meteordevelopment.meteorclient.events.meteor.KeyInputEvent;
+import meteordevelopment.meteorclient.events.meteor.MouseClickEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
@@ -83,9 +83,9 @@ public class ClientDeleteModule extends Module {
     );
 
     @EventHandler
-    private void onKey(MouseButtonEvent event){
+    private void onKey(MouseClickEvent event){
         int bind = customInput.get() ? Integer.parseInt(keybind.get()) : selectionBind.get().getValue();
-        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.button != bind) return;
+        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.button() != bind) return;
         if (!(mc.hitResult instanceof BlockHitResult result)) return;
         mc.level.setBlockAndUpdate(result.getBlockPos(), Blocks.AIR.defaultBlockState());
         if(!keepActive.get()) toggle();
@@ -93,9 +93,9 @@ public class ClientDeleteModule extends Module {
     }
 
     @EventHandler
-    private void onKey(KeyEvent event){
+    private void onKey(KeyInputEvent event){
         int bind = customInput.get() ? Integer.parseInt(keybind.get()) : selectionBind.get().getValue();
-        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.key != bind) return;
+        if(!(event.action == KeyAction.Press || (allowHolding.get() && event.action == KeyAction.Repeat)) || mc.screen != null || event.key() != bind) return;
         if (!(mc.hitResult instanceof BlockHitResult result)) return;
         mc.level.setBlockAndUpdate(result.getBlockPos(), Blocks.AIR.defaultBlockState());
         if(!keepActive.get()) toggle();

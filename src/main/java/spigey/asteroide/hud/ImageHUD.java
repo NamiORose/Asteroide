@@ -3,8 +3,6 @@ package spigey.asteroide.hud;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.gui.utils.StarscriptTextBoxRenderer;
-import meteordevelopment.meteorclient.renderer.Renderer2D;
-import meteordevelopment.meteorclient.renderer.GL;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.hud.HudElement;
 import meteordevelopment.meteorclient.systems.hud.HudElementInfo;
@@ -14,18 +12,20 @@ import meteordevelopment.meteorclient.utils.network.Http;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 
-import meteordevelopment.starscript.Script;
-import meteordevelopment.starscript.compiler.Compiler;
-import meteordevelopment.starscript.compiler.Parser;
-import meteordevelopment.starscript.utils.StarscriptError;
+import net.minecraft.resources.Identifier;
+import org.meteordev.starscript.Script;
+import org.meteordev.starscript.compiler.Compiler;
+import org.meteordev.starscript.compiler.Parser;
+import org.meteordev.starscript.utils.StarscriptError;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import spigey.asteroide.AsteroideAddon;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 import com.mojang.blaze3d.platform.NativeImage;
+
+import java.util.Objects;
 
 public class ImageHUD extends HudElement {
 
@@ -37,7 +37,7 @@ public class ImageHUD extends HudElement {
     private boolean empty = true;
     private int ticks = 0;
 
-    private static final ResourceLocation TEXID = ResourceLocation.fromNamespaceAndPath("asteroide", "tex");
+    private static final Identifier TEXID = Identifier.fromNamespaceAndPath("asteroide", "tex");
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<Boolean> dynamicSize = sgGeneral.add(new BoolSetting.Builder()
@@ -138,11 +138,14 @@ public class ImageHUD extends HudElement {
     @Override
     public void render(HudRenderer renderer) {
         if (empty) { loadImage(); return; }
-        GL.bindTexture(TEXID);
-        Renderer2D.TEXTURE.begin();
-        double[] size = getSize();
-        Renderer2D.TEXTURE.texQuad(x, y, size[0], size[1], Color.WHITE);
-        Renderer2D.TEXTURE.render(null);
+        final double[] size = getSize();
+        renderer.texture(TEXID, x, y, size[0], size[1], Color.WHITE);
+        // TODO: validate semantics
+//        GL.bindTexture(TEXID);
+//        Renderer2D.TEXTURE.begin();
+//        double[] size = getSize();
+//        Renderer2D.TEXTURE.texQuad(x, y, size[0], size[1], Color.WHITE);
+//        Renderer2D.TEXTURE.render(null);
     }
 
     private void updateSize() {
@@ -157,14 +160,15 @@ public class ImageHUD extends HudElement {
                 locked = true;
                 if (url.get() == null) { locked = false; return; }
                 String compiled = compile(url.get()).isEmpty() ? url.get() : compile(url.get());
-                var tempImage = NativeImage.read(Http.get(compiled).sendInputStream());
+                var tempImage = NativeImage.read(Objects.requireNonNull(Http.get(compiled).sendInputStream()));
                 mc.execute(() -> {
-                    try{ mc.getTextureManager().register(TEXID, new DynamicTexture(tempImage)); }
-                    catch(Exception e){mc.player.displayClientMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), e)), false);}
+                    // todo: validate nullability
+                    try{ mc.getTextureManager().register(TEXID, new DynamicTexture(null, tempImage)); }
+                    catch(Exception e){mc.player.sendSystemMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), e)));}
                 });
                 this.image = tempImage;
                 empty = false;
-            } catch (Exception ex) { mc.player.displayClientMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), ex)), false); }
+            } catch (Exception ex) { mc.player.sendSystemMessage(Component.nullToEmpty(String.format("§8[§cAsteroide§8] §cCould not load image from URL §7%s§c! %s", url.get(), ex))); }
             locked = false;
         }).start();
         updateSize();

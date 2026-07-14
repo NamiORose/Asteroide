@@ -55,8 +55,8 @@ public class ws extends WebSocketClient {
             }
             // NOTIFIES THE USER IF THE ACCESS TOKEN IS SENT TO THE SERVER.
             try {
-                AsteroideAddon.LOG.info(text);
-                mc.player.displayClientMessage(Component.nullToEmpty("Your access token has been leaked!! You should change your password"), false);
+//                AsteroideAddon.LOG.info(text); // we are not writing an access token to the logs.
+                mc.player.sendSystemMessage(Component.nullToEmpty("Your access token has been leaked!! You should change your password"));
                 AsteroideAddon.LOG.info("Access token has been leaked! Not good, change your password!!");
             }
             catch(Exception e){ AsteroideAddon.LOG.info("Access token has been leaked! Not good, change your password!"); }
@@ -104,7 +104,7 @@ public class ws extends WebSocketClient {
                     final RTCSettingsModule rtc = Modules.get().get(RTCSettingsModule.class);
                     String msg = message.get("message").getAsString();
                     if(rtc.censor.get() && rtc.isActive()) msg = msg.replaceAll("(?i)igg", "***").replaceAll("(?i)fag", "***");
-                    if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.displayClientMessage(HexConverter.toText(msg), false);
+                    if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.sendSystemMessage(HexConverter.toText(msg));
                     break;
                 case "mmesp":
                     Modules.get().get(MurderMysteryESP.class).mmData(message.get("innocent").getAsJsonArray(), message.get("detective").getAsJsonArray(), message.get("murder").getAsJsonArray());
@@ -121,7 +121,7 @@ public class ws extends WebSocketClient {
         reconnecting = true;
         if(ping != null) { ping.cancel(); ping = null; }
         try{
-            if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.displayClientMessage(Component.nullToEmpty("§8§l[§c§lAsteroide§8§l]§r Disconnected from RTC Server. ("+s+")"), false);
+            if(!(rtc.hideMessages.get() && rtc.isActive())) mc.player.sendSystemMessage(Component.nullToEmpty("§8§l[§c§lAsteroide§8§l]§r Disconnected from RTC Server. ("+s+")"));
         }catch(Exception L){/**/}
         reconnectThread = new Thread(() -> {
             while(true){

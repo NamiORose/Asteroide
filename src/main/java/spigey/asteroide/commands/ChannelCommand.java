@@ -7,7 +7,7 @@ import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.events.game.SendMessageEvent;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 public class ChannelCommand extends Command {
     public ChannelCommand() {
@@ -16,7 +16,7 @@ public class ChannelCommand extends Command {
     private String channel = "";
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<ClientSuggestionProvider> builder) {
         builder.executes(context -> {
             if(this.channel.isEmpty()){ info("Usage: §8.channel <command>.§7 Will run every chat message you send on that command."); return SINGLE_SUCCESS; }
             this.channel = "";

@@ -23,6 +23,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import spigey.asteroide.AsteroideAddon;
@@ -381,8 +382,9 @@ public class MurderMysteryESP extends Module {
         for(Entity entity : mc.level.entitiesForRendering()){
             if(entity == mc.player && ignoreSelf.get()) continue;
             if(!(entity instanceof Player)) continue;
-            String player = ((Player) entity).getGameProfile().getName();
-            Item main = ((Player) entity).getMainHandItem().getItem();
+            String player = ((Player) entity).getGameProfile().name();
+            ItemStack itemStackInMainHand = ((Player) entity).getMainHandItem();
+            Item main = itemStackInMainHand.getItem();
             boolean murd = murdItems.get().contains(main); boolean dec = decItems.get().contains(main);
             if(murd) { murderers.add(player); detectives.remove(player); }
             if(dec) detectives.add(player);
@@ -396,7 +398,7 @@ public class MurderMysteryESP extends Module {
                         .replaceAll("%murd_pos%", String.format("%.0f %.0f %.0f", entity.getX(), entity.getY(), entity.getZ()))
                         .replaceAll("%detective_pos%", "None") // I'm sorry :/
                     );
-                    info(String.format("§c%s§7 is holding §c%s§7!", player, main.getName().getString()));
+                    info(String.format("§c%s§7 is holding §c%s§7!", player, main.getName(itemStackInMainHand).getString()));
                 }
                 if(dec && decLog.get() && !found.contains(player) && !resetItems.get().contains(mc.player.getInventory().getItem(8).getItem())){
                     if(announceDec.get()) ChatUtils.sendPlayerMsg(decAnnouncement.get()
@@ -406,7 +408,7 @@ public class MurderMysteryESP extends Module {
                         .replaceAll("%murd_pos%", "None") // I'm sorry :/
                         .replaceAll("%detective_pos%", String.format("%.0f %.0f %.0f", entity.getX(), entity.getY(), entity.getZ()))
                     );
-                    info(String.format("§b%s§7 is holding §b%s§7!", player, main.getName().getString()));
+                    info(String.format("§b%s§7 is holding §b%s§7!", player, main.getName(itemStackInMainHand).getString()));
                 }
                 found.add(player);
             }
@@ -420,7 +422,7 @@ public class MurderMysteryESP extends Module {
             if(entity instanceof ItemEntity && ((ItemEntity) entity).getItem().getItem() == Items.GOLD_INGOT && itemEsp.get()) itemEsp(event, entity);
             if(entity == mc.player && ignoreSelf.get()) continue;
             if(!(entity instanceof Player)) continue;
-            String player = ((Player) entity).getGameProfile().getName();
+            String player = ((Player) entity).getGameProfile().name();
             tracers(event, entity);
             drawBoundingBox(event, entity);
         }
@@ -442,7 +444,7 @@ public class MurderMysteryESP extends Module {
     }
 
     private void drawBoundingBox(Render3DEvent event, Entity entity) {
-        Role role = getRole(((Player) entity).getGameProfile().getName());
+        Role role = getRole(((Player) entity).getGameProfile().name());
         if(role == Role.Murderer && !murdESP.get()) return;
         if(role == Role.Detective && !decESP.get()) return;
         if(role == Role.Innocent && !innESP.get()) return;
@@ -459,7 +461,7 @@ public class MurderMysteryESP extends Module {
     }
 
     private void tracers(Render3DEvent event, Entity entity){
-        Role role = getRole(((Player) entity).getGameProfile().getName());
+        Role role = getRole(((Player) entity).getGameProfile().name());
         if(role == Role.Murderer && !murdTracers.get()) return;
         if(role == Role.Detective && !decTracers.get()) return;
         if(role == Role.Innocent && !innTracers.get()) return;

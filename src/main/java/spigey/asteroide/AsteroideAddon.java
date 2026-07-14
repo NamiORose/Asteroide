@@ -42,7 +42,7 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class AsteroideAddon extends MeteorAddon {
     public static final Logger LOG = LogUtils.getLogger();
-    public static final Category CATEGORY = new Category("Asteroide", Items.MAGMA_BLOCK.getDefaultInstance());
+    public static final Category CATEGORY = new Category("Asteroide", Items.MAGMA_BLOCK::getDefaultInstance);
     public static final HudGroup HUD = new HudGroup("Asteroide");
     public static final Gson gson = new Gson();
     public static String spoofedIP = "?";

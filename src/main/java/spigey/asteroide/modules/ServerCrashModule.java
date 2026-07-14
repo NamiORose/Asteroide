@@ -4,6 +4,8 @@ import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
 import spigey.asteroide.AsteroideAddon;
 
 import static spigey.asteroide.util.*;
@@ -32,7 +34,7 @@ public class ServerCrashModule extends Module {
         assert mc.player != null;
         error("Remember to disable Bee rendering using NoRender and install the EntityCulling mod!");
         info("Attempting to crash the Server");
-        if(!mc.player.hasPermissions(2)){error(perm(2));}
+        if(!mc.player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))){error(perm(2));}
         if(cmdfeedback.get()){msg("/gamerule sendCommandFeedback false");}
         if(logadmin.get()){msg("/gamerule logAdminCommands false");}
         msg("/execute as @e as @e run summon bee ~ ~-10 ~ {Invulnerable:1}");

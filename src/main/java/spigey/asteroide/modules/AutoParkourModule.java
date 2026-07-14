@@ -17,8 +17,6 @@ import spigey.asteroide.AsteroideAddon;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.nimbusds.openid.connect.sdk.assurance.claims.ISO3166_1Alpha2CountryCode.GL;
-
 public class AutoParkourModule extends Module {
     public AutoParkourModule() {
         super(AsteroideAddon.CATEGORY, "Parkour-Bot", "Automatically does parkour for you by teleporting.");

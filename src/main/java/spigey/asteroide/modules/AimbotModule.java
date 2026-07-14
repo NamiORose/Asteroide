@@ -11,8 +11,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.Vec3;
 import spigey.asteroide.AsteroideAddon;
 import java.util.Set;
@@ -70,7 +68,6 @@ public class AimbotModule extends Module {
     private final Setting<Boolean> targetFriends = sgGeneral.add(new BoolSetting.Builder().name("target friends").description("Also targets friends when enabled.").defaultValue(false).build());
     // this shit so fucking skidded 💔
 
-
     @EventHandler
     public void onRender(Render3DEvent event) {
         Entity entity = getEntity();
@@ -117,9 +114,9 @@ public class AimbotModule extends Module {
 
     private boolean itemInHand() {
         return switch (weapon.get()) {
-            case Axe -> mc.player.getMainHandItem().getItem() instanceof AxeItem;
-            case Sword -> mc.player.getMainHandItem().getItem() instanceof SwordItem;
-            case Both -> mc.player.getMainHandItem().getItem() instanceof AxeItem || mc.player.getMainHandItem().is(ItemTags.SWORDS);
+            case Axe -> mc.player.getMainHandItem().is(ItemTags.AXES);
+            case Sword -> mc.player.getMainHandItem().is(ItemTags.SWORDS);
+            case Both -> mc.player.getMainHandItem().is(ItemTags.AXES) || mc.player.getMainHandItem().is(ItemTags.SWORDS);
             case All -> true;
         };
     }

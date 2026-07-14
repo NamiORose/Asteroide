@@ -88,7 +88,7 @@ public class TrollModule extends Module {
         if(idx >= this.players.size()) idx = 0;
         PlayerInfo player = this.players.get(idx);
         for (String s : ranks.get()) if (displayName(player).toLowerCase().contains(s.toLowerCase())) return;
-        for (String s : users.get()) if (player.getProfile().getName().toLowerCase().contains(s.toLowerCase()) || player.getProfile().getName().contains("§")) return;
+        for (String s : users.get()) if (player.getProfile().name().toLowerCase().contains(s.toLowerCase()) || player.getProfile().name().contains("§")) return;
         if(!friends.get() && Friends.get().isFriend(player)) return;
         List<String> troll = new ArrayList<>();
         if(type.get() == Trolls.Insults) { troll.addAll(AsteroideAddon.trolls); troll.addAll(quotes.get()); }
@@ -96,14 +96,14 @@ public class TrollModule extends Module {
 
         try {
             Regex rgx = new Regex(Map.of(
-                "NAME", player.getProfile().getName(),
-                "SELF", mc.getGameProfile().getName(),
+                "NAME", player.getProfile().name(),
+                "SELF", mc.getGameProfile().name(),
                 "SERVER", mc.getCurrentServer().ip.split("\\.")[0],
                 "FPS", mc.getFps()
             ));
 
             ChatUtils.sendPlayerMsg(command.get()
-                .replaceAll("\\{name}", player.getProfile().getName())
+                .replaceAll("\\{name}", player.getProfile().name())
                 .replaceAll("\\{troll}", rgx.placeholder(troll.get(new Random().nextInt(troll.size()))))
             );
         }catch(Exception L){}
@@ -111,7 +111,7 @@ public class TrollModule extends Module {
         tick = delay.get();
     }
 
-    private String displayName(PlayerInfo player){ return player.getTabListDisplayName() == null ? player.getProfile().getName() : player.getTabListDisplayName().getString(); }
+    private String displayName(PlayerInfo player){ return player.getTabListDisplayName() == null ? player.getProfile().name() : player.getTabListDisplayName().getString(); }
 
     private enum Trolls{
         Insults,

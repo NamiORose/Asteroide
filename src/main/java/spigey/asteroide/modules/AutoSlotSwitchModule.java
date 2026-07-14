@@ -109,7 +109,7 @@ public class AutoSlotSwitchModule extends Module {
                 if (switchmode.get() == SwitchMode.Random) { num = findNextSlot(util.randomNum(0, 8)); // Randomly select a slot
                 } else { // Select the next slot
                     assert mc.player != null;
-                    int temp = mc.player.getInventory().selected + 1;
+                    int temp = mc.player.getInventory().getSelectedSlot() + 1;
                     for (int i = 0; i < 10; i++) {
                         if (temp > 9) { temp = 0; }
                         if (!slots[temp]) { temp++; }
@@ -121,7 +121,7 @@ public class AutoSlotSwitchModule extends Module {
             if (switchmode.get() == SwitchMode.Random) { num = findNextSlot(util.randomNum(0, 8)); // It works.
             } else { // Next slot...
                 assert mc.player != null;
-                num = findNextSlot(mc.player.getInventory().selected);
+                num = findNextSlot(mc.player.getInventory().getSelectedSlot());
             }
         }
         if (PriorityEnabled.get()) { // Priority enabled

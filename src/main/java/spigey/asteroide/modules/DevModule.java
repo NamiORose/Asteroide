@@ -15,8 +15,10 @@ import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketType;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import org.jetbrains.annotations.NotNull;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.Set;
@@ -57,10 +59,10 @@ public class DevModule extends Module {
         .build()
     );
 
-    private final Setting<Set<Class<? extends Packet<?>>>> packets = sgPackets.add(new PacketListSetting.Builder()
+    private final Setting<Set<PacketType<? extends @NotNull Packet<?>>>> packets = sgPackets.add(new PacketListSetting.Builder()
         .name("Packets")
         .description("Artics to log")
-        .filter(aClass -> PacketUtils.getC2SPackets().contains(aClass))
+        .filter(aClass -> PacketUtils.getServerboundPackets().contains(aClass))
         .build()
     );
     private final Setting<Boolean> packetDetails = sgPackets.add(new BoolSetting.Builder()
@@ -82,7 +84,7 @@ public class DevModule extends Module {
     private void onPacketSend(PacketEvent.Send event) {
         if(packets.get().contains(event.packet.getClass())){
             if(packetDetails.get()) info(event.packet.toString());
-            else info(PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()));
+            else info(Component.translationArg(event.packet.type().id())); // todo: validate
             if(packetDelay.get()) info(String.format("Last packet %d ticks ago", lastPacket));
             this.lastPacket = 0;
         }
@@ -91,10 +93,10 @@ public class DevModule extends Module {
             System.out.print(((ServerboundCustomPayloadPacket) event.packet).payload().type().id());
         }
         if (!(event.packet instanceof ServerboundContainerClickPacket) || !slots.get()) return;
-        ChatUtils.sendMsg(Component.nullToEmpty("§cSLOT " + ((ServerboundContainerClickPacket) event.packet).getSlotNum()));
-        ChatUtils.sendMsg(Component.nullToEmpty("§aREVISION " + ((ServerboundContainerClickPacket) event.packet).getStateId()));
-        ChatUtils.sendMsg(Component.nullToEmpty("§9SYNC ID " + ((ServerboundContainerClickPacket) event.packet).getContainerId()));
-        ChatUtils.sendMsg(Component.nullToEmpty("§7ACTION " + ((ServerboundContainerClickPacket) event.packet).getClickType().name()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§cSLOT " + ((ServerboundContainerClickPacket) event.packet).slotNum()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§aREVISION " + ((ServerboundContainerClickPacket) event.packet).stateId()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§9SYNC ID " + ((ServerboundContainerClickPacket) event.packet).containerId()));
+        ChatUtils.sendMsg(Component.nullToEmpty("§7ACTION " + ((ServerboundContainerClickPacket) event.packet).containerInput().name()));
         event.cancel();
     }
 

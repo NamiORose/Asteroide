@@ -8,6 +8,10 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.PermissionSet;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -17,6 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Random;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
@@ -30,7 +35,32 @@ public class util {
         ChatUtils.sendPlayerMsg(message);
     }
 
-    public static int getPermissionLevel(){ return mc.player.getPermissionLevel(); }
+    private static final Permission PERMISSION_LEVEL_0 = new Permission.HasCommandLevel(PermissionLevel.ALL);
+    private static final Permission PERMISSION_LEVEL_1 = new Permission.HasCommandLevel(PermissionLevel.MODERATORS);
+    private static final Permission PERMISSION_LEVEL_2 = new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS);
+    private static final Permission PERMISSION_LEVEL_3 = new Permission.HasCommandLevel(PermissionLevel.ADMINS);
+    private static final Permission PERMISSION_LEVEL_4 = new Permission.HasCommandLevel(PermissionLevel.OWNERS);
+
+    // todo: remove this
+    public static int getPermissionLevel(){
+        if (mc.player == null)
+            return 0;
+
+        final PermissionSet permissions = mc.player.permissions();
+        if (permissions.hasPermission(PERMISSION_LEVEL_4))
+            return 4;
+
+        if (permissions.hasPermission(PERMISSION_LEVEL_3))
+            return 3;
+
+        if (permissions.hasPermission(PERMISSION_LEVEL_2))
+            return 2;
+
+        if (permissions.hasPermission(PERMISSION_LEVEL_1))
+            return 1;
+
+        return 0;
+    }
 
     public static double meth(final String str) { // Skidded off stack overflow
         return new Object() {
@@ -143,14 +173,8 @@ public class util {
         MutableComponent Button = Component.literal("[COPY]");
         Button.setStyle(Button.getStyle()
             .applyFormat(ChatFormatting.GREEN)
-            .withClickEvent(new MeteorClickEvent(
-                ClickEvent.Action.COPY_TO_CLIPBOARD,
-                copy
-            ))
-            .withHoverEvent(new HoverEvent(
-                HoverEvent.Action.SHOW_TEXT,
-                Component.literal("Click to Copy")
-            ))
+            .withClickEvent(new ClickEvent.CopyToClipboard(copy))
+            .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to Copy")))
         );
         return Button;
     }
@@ -159,14 +183,8 @@ public class util {
         MutableComponent Button = Component.literal("[SEND]");
         Button.setStyle(Button.getStyle()
             .applyFormat(ChatFormatting.GREEN)
-            .withClickEvent(new MeteorClickEvent(
-                ClickEvent.Action.RUN_COMMAND,
-                Commands.get("say").toString(send)
-            ))
-            .withHoverEvent(new HoverEvent(
-                HoverEvent.Action.SHOW_TEXT,
-                Component.literal("Click to Send")
-            ))
+            .withClickEvent(new ClickEvent.RunCommand(Commands.get("say").toString(send)))
+            .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to Send")))
         );
         return message.append(" ").append(Button);
     }

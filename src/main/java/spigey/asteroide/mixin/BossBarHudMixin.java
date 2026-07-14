@@ -12,8 +12,8 @@ import spigey.asteroide.modules.BetterAntiCrashModule;
 
 @Mixin(BossHealthOverlay.class)
 public class BossBarHudMixin {
-    @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/LerpingBossEvent;getName()Lnet/minecraft/network/chat/Component;"))
-    public Component modifyBossBarName(Component original, @Local LerpingBossEvent clientBossBar) {
+    @ModifyExpressionValue(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/LerpingBossEvent;getName()Lnet/minecraft/network/chat/Component;"))
+    public Component modifyBossBarName(Component original, @Local(print = true) LerpingBossEvent event) {
         BetterAntiCrashModule bac = Modules.get().get(BetterAntiCrashModule.class);
         return bac.isActive() && bac.bossBarLimit.get() && bac.ThresholdLength.get() < original.getString().length() ? Component.nullToEmpty(String.format("§c[Bossbar with length %s blocked]", bac.getMessage(original.getString()))) : original;
     }

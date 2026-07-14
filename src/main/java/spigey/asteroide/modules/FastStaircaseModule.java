@@ -18,7 +18,7 @@ public class FastStaircaseModule extends Module {
         if(!BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(mc.player.blockPosition()).getBlock()).toString().endsWith("_stairs")) return;
         boolean asd = Modules.get().get(HighJump.class).isActive();
         if(asd) Modules.get().get(HighJump.class).toggle();
-        if(BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(mc.player.blockPosition()).getBlock()).toString().endsWith("_stairs")) if(mc.player.getDirection() == mc.level.getBlockState(mc.player.blockPosition()).getValue(StairBlock.FACING) && mc.player.input.forwardImpulse > 0) mc.player.jumpFromGround();
+        if(BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(mc.player.blockPosition()).getBlock()).toString().endsWith("_stairs")) if(mc.player.getDirection() == mc.level.getBlockState(mc.player.blockPosition()).getValue(StairBlock.FACING) && mc.player.input.hasForwardImpulse()) mc.player.jumpFromGround();
         if(asd) Modules.get().get(HighJump.class).toggle();
     }
 }

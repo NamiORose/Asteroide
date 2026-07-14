@@ -3,12 +3,17 @@ package spigey.asteroide.commands;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.commands.arguments.PlayerListEntryArgumentType;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+
 import java.util.Objects;
 
 public class CopyCommand extends Command {
@@ -17,7 +22,7 @@ public class CopyCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<ClientSuggestionProvider> builder) {
         builder.then(argument("player", PlayerListEntryArgumentType.create())
             .then(literal("MAIN_HAND").executes(context -> {
                 execute(PlayerListEntryArgumentType.get(context), InteractionHand.MAIN_HAND);
@@ -36,11 +41,13 @@ public class CopyCommand extends Command {
 
     private void execute(PlayerInfo player, InteractionHand hand){
         for(Entity entity : mc.level.entitiesForRendering()){
-            if(entity instanceof Player plr && Objects.equals(entity.getName().getString(), player.getProfile().getName())){ // There definitely is a better way.
+            if(entity instanceof Player plr && Objects.equals(entity.getName().getString(), player.getProfile().name())){ // There definitely is a better way.
                 InteractionHand ph = getHand();
                 mc.player.setItemInHand(ph, plr.getItemInHand(hand).copy());
-                mc.getConnection().send(new ServerboundSetCreativeModeSlotPacket(ph == InteractionHand.OFF_HAND ? 45 : 36 + mc.player.getInventory().selected, plr.getItemInHand(hand).copy()));
-                info(String.format("Copied §f%s§7 from §f%s§7.", plr.getItemInHand(hand).getItem().getName().getString(), plr.getName().getString()));
+                mc.getConnection().send(new ServerboundSetCreativeModeSlotPacket(ph == InteractionHand.OFF_HAND ? 45 : 36 + mc.player.getInventory().getSelectedSlot(), plr.getItemInHand(hand).copy()));
+                final ItemStack itemStack = plr.getItemInHand(hand);
+                final Component itemStackName = itemStack.getComponents().getOrDefault(DataComponents.ITEM_NAME, CommonComponents.EMPTY);
+                info(String.format("Copied §f%s§7 from §f%s§7.", itemStackName.getString(), plr.getName().getString()));
                 return;
             }
         }

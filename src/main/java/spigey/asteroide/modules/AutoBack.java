@@ -6,7 +6,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.systems.modules.misc.AutoRespawn;
+import meteordevelopment.meteorclient.systems.modules.player.AutoRespawn;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import spigey.asteroide.AsteroideAddon;
@@ -76,7 +76,7 @@ public class AutoBack extends Module {
     @Override
     public void onActivate() {
         Module thing = Modules.get().get(AutoRespawn.class);
-        if(!thing.isActive()){thing.toggle();}
+        if(thing != null && !thing.isActive()){thing.toggle();}
     }
 
     private static final Random random = new Random();

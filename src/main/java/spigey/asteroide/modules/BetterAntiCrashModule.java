@@ -13,6 +13,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketType;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.NotNull;
 import spigey.asteroide.AsteroideAddon;
 
 import java.util.*;
@@ -150,7 +152,7 @@ public class BetterAntiCrashModule extends Module {
         .build()
     );
 
-    private final Setting<Set<Class<? extends Packet<?>>>> blockPackets = sgPackets.add(new PacketListSetting.Builder()
+    private final Setting<Set<PacketType<? extends @NotNull Packet<?>>>> blockPackets = sgPackets.add(new PacketListSetting.Builder()
         .name("Packets")
         .description("Packets to whitelist/blacklist")
         .visible(packets::get)
@@ -299,7 +301,7 @@ public class BetterAntiCrashModule extends Module {
         if(packets.get() && shouldCheck(event.packet)){
             if(packetThreshold.get() < event.packet.toString().length()){
                 event.cancel();
-                if(logBlockedPackets.get()) info(String.format("Blocked large %s packet with length %s!", PacketUtils.getName((Class<? extends Packet<?>>) event.packet.getClass()), getMessagePacketThing(event.packet.toString())));
+                if(logBlockedPackets.get()) info(String.format("Blocked large %s packet with length %s!", event.packet.type().id(), getMessagePacketThing(event.packet.toString())));
             }
         }
         if(event.packet instanceof ClientboundSetEntityDataPacket && entityLengthLimit.get()) { try{
@@ -315,8 +317,8 @@ public class BetterAntiCrashModule extends Module {
     }
 
     private boolean shouldCheck(Packet<?> packet){
-        if(packetMode.get() == PacketMode.Whitelist && blockPackets.get().contains(packet.getClass())) return false;
-        return packetMode.get() != PacketMode.Blacklist || blockPackets.get().contains(packet.getClass());
+        if(packetMode.get() == PacketMode.Whitelist && blockPackets.get().contains(packet.type())) return false;
+        return packetMode.get() != PacketMode.Blacklist || blockPackets.get().contains(packet.type());
     }
 
     @EventHandler

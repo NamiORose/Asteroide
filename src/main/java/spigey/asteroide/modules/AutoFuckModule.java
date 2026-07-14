@@ -43,23 +43,21 @@ public class AutoFuckModule extends Module {
     private boolean sneaking = false;
     @EventHandler
     private void onTick(TickEvent.Post event){
+        assert mc.player != null;
         if(tick > 0){tick--; return;}
         if(!isActive()) return;
         if(tick == -1){
             sneaking = true;
             tick = sneakTime.get();
-            assert mc.player != null;
             mc.options.keyShift.setDown(true);
         }
         if(sneaking){
             sneaking = false;
             tick = delay.get();
-            assert mc.player != null;
             mc.options.keyShift.setDown(false);
         } else{
             sneaking = true;
             tick = sneakTime.get();
-            assert mc.player != null;
             mc.options.keyShift.setDown(true);
         }
     }
